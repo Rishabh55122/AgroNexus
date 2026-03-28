@@ -1,0 +1,29 @@
+# Security files (NEVER share API keys on Github)
+.env
+secret.key
+
+# Virtual environments
+.venv
+venv/
+ENV/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE and OS junk
+.DS_Store
+.vscode/
+.idea/
+Thumbs.db
+*.swp
+*.orig
+
+# Project specific caches and build files
+*.log
+baseline_results.json
+build/
+dist/
+*.egg-info/
+node_modules/
