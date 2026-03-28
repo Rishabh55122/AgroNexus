@@ -252,7 +252,7 @@
 </div>
 <!-- AI Robot Icon Overlay -->
 <div class="absolute -top-4 -left-4 animate-bounce">
-<span class="material-symbols-outlined text-secondary text-lg" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+<span class="material-symbols-outlined text-secondary text-lg" style="font-variation-settings: 'FILL' 1;">my_location</span>
 </div>
 </div>
 <div class="w-24 h-24 bg-[#2D1B0E] border border-tertiary-container/30 relative shadow-2xl">
@@ -404,11 +404,11 @@
 <div class="border-t border-outline"></div>
 </div>
 <!-- Static Stitch chart demo bars (replaced live once RUN is pressed) -->
-<div class="flex-1 h-[40%] bg-primary/20 rounded-t-sm border-t-2 border-primary relative group"><div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-surface-bright px-2 py-1 rounded text-[8px] z-50">+12.4</div></div>
+<div class="flex-1 h-[40%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
 <div class="flex-1 h-[45%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
 <div class="flex-1 h-[38%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
 <div class="flex-1 h-[52%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
-<div class="flex-1 h-[60%] bg-primary/20 rounded-t-sm border-t-2 border-primary relative"><div class="absolute -bottom-1 left-0 w-full h-[150%] border-t-2 border-secondary rounded-full -rotate-12 opacity-80"></div></div>
+<div class="flex-1 h-[60%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
 <div class="flex-1 h-[58%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
 <div class="flex-1 h-[65%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
 <div class="flex-1 h-[72%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
@@ -416,7 +416,7 @@
 <div class="flex-1 h-[80%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
 <div class="flex-1 h-[75%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
 <div class="flex-1 h-[85%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
-<div class="flex-1 h-[92%] bg-primary/20 rounded-t-sm border-t-2 border-primary relative"><div class="absolute -bottom-2 left-0 w-full h-[180%] border-t-2 border-secondary rounded-full -rotate-6 opacity-80"></div></div>
+<div class="flex-1 h-[92%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
 <div class="flex-1 h-[88%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
 <div class="flex-1 h-[95%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
 <div class="flex-1 h-[100%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
@@ -504,7 +504,7 @@ function tileHtml(z, i, isAgent) {
                 harv  ? '<span class="text-[8px] font-headline text-white/30 mt-1">DONE</span>'      :
                         `<span class="text-[8px] font-headline text-white/50 mt-1">${zid}</span>`;
   const pestDots= pest>0.4 ? `<div class="absolute bottom-1 right-1 flex gap-0.5">${'<div class="w-1 h-1 bg-error rounded-full animate-pulse"></div>'.repeat(Math.min(3,Math.ceil(pest*3)))}</div>` : '';
-  const agentBadge = isAgent ? `<div class="absolute -top-4 -left-4 animate-bounce"><span class="material-symbols-outlined text-secondary text-lg" style="font-variation-settings:'FILL' 1">smart_toy</span></div>` : '';
+  const agentBadge = isAgent ? `<div class="absolute -top-4 -left-4 animate-bounce"><span class="material-symbols-outlined text-secondary text-lg" style="font-variation-settings:'FILL' 1">my_location</span></div>` : '';
   const border = ready ? 'border-tertiary/60'
                : health > 0.7 ? 'border-primary-container/30'
                : health > 0.4 ? 'border-tertiary-container/30'
@@ -588,9 +588,10 @@ function updateStats(observation, reward) {
   document.getElementById('weather-title').textContent = wi.t;
   document.getElementById('weather-sub').textContent   = wi.s;
 
+  renderGrid(zones);
+  updateVitals(zones);
+
   if (liveMode) {
-    renderGrid(zones);
-    updateVitals(zones);
     addChartBar(stepR, epR);
   }
 }
@@ -694,10 +695,9 @@ async function handleReset() {
   document.getElementById('done-banner').classList.add('hidden');
   document.getElementById('score-row').classList.add('hidden');
   document.getElementById('run-btn').textContent = 'RUN';
-  // Restore Stitch static chart bars
+
   restoreStaticChart();
-  // Restore Stitch static grid
-  restoreStaticGrid();
+  
   try {
     const d = await apiFetch('/reset', {method:'POST', body:JSON.stringify({task_id:taskId})});
     obs = d.obs ?? d.observation ?? d;
@@ -755,10 +755,10 @@ setInterval(checkStatus, 15000);
 <div class="fixed bottom-16 md:bottom-6 right-6 z-50 flex items-center gap-2 bg-surface-container-high border border-outline-variant/20 px-3 py-2 rounded-xl shadow-xl">
   <span class="text-[10px] uppercase font-headline text-outline">Speed</span>
   <select id="speed-select" class="bg-transparent text-[11px] font-headline text-primary outline-none cursor-pointer">
-    <option value="0.5">0.5×</option>
-    <option value="1" selected>1×</option>
-    <option value="2">2×</option>
-    <option value="5">5×</option>
+    <option class="bg-surface-container-high text-primary" value="0.5">0.5×</option>
+    <option class="bg-surface-container-high text-primary" value="1" selected>1×</option>
+    <option class="bg-surface-container-high text-primary" value="2">2×</option>
+    <option class="bg-surface-container-high text-primary" value="5">5×</option>
   </select>
 </div>
 

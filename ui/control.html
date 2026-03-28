@@ -133,11 +133,11 @@
 <div class="space-y-2">
 <label class="font-label text-xs uppercase tracking-widest text-on-surface-variant">Action Type</label>
 <select id="action-type" class="w-full bg-surface-container-lowest border-none border-b-2 border-outline-variant focus:ring-0 focus:border-primary text-on-surface py-3 rounded-t-lg transition-all font-body">
-<option value="irrigate">Irrigation Pulse</option>
-<option value="fertilize">Nutrient Injection</option>
-<option value="harvest">Harvest Protocol</option>
-<option value="pesticide">Pest Mitigation</option>
-<option value="wait">Wait (Skip Turn)</option>
+<option class="bg-surface-container-highest" value="irrigate">Irrigation Pulse</option>
+<option class="bg-surface-container-highest" value="fertilize">Nutrient Injection</option>
+<option class="bg-surface-container-highest" value="harvest">Harvest Protocol</option>
+<option class="bg-surface-container-highest" value="pesticide">Pest Mitigation</option>
+<option class="bg-surface-container-highest" value="wait">Wait (Skip Turn)</option>
 </select>
 </div>
 <div class="space-y-4">
@@ -165,9 +165,9 @@
 <div class="space-y-2">
 <label class="font-label text-xs uppercase tracking-widest text-on-surface-variant">Market Target</label>
 <select class="w-full bg-surface-container-lowest border-none border-b-2 border-outline-variant focus:ring-0 focus:border-primary text-on-surface py-3 rounded-t-lg transition-all font-body">
-<option>Premium Wholesale</option>
-<option>Direct Export</option>
-<option>Local Exchange</option>
+<option class="bg-surface-container-highest">Premium Wholesale</option>
+<option class="bg-surface-container-highest">Direct Export</option>
+<option class="bg-surface-container-highest">Local Exchange</option>
 </select>
 </div>
 <button id="submit-btn" onclick="submitAction()" class="w-full py-4 bg-gradient-to-r from-primary-container to-primary text-on-primary font-headline font-bold uppercase tracking-widest rounded-xl shadow-lg shadow-primary/20 active:scale-95 transition-all" type="button">
