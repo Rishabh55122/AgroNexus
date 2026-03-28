@@ -1,0 +1,64 @@
+{
+  "task_id": "task_1_easy",
+  "name": "Normal Season Harvest",
+  "description": "Manage a 2-zone wheat farm across a stable 30-day growing season. Irrigate correctly and harvest at peak ripeness to maximize yield.",
+  "difficulty": "easy",
+  "episode_days": 30,
+  "num_zones": 2,
+  "crops": ["wheat"],
+  "scenario": "normal",
+  "budget": 500.0,
+  "water_budget": 200.0,
+  "seed": 42,
+  "target_score_min": 0.7,
+  "target_score_max": 1.0,
+  "action_schema": {
+    "action_type": "string \u2014 one of: irrigate, fertilize, pesticide, harvest, wait, sell",
+    "zone": "int \u2014 zone index (0-based)",
+    "amount": "float \u2014 water litres for irrigate, tons for sell",
+    "type": "string \u2014 fertilizer type: nitrogen | phosphorus | potassium",
+    "days": "int \u2014 number of days to wait",
+    "market": "string \u2014 local | export",
+    "crop": "string \u2014 wheat | corn | soy"
+  },
+  "observation_space": {
+    "day": "int \u2014 current day of season (1 to episode_days)",
+    "season_phase": "string \u2014 planting | growing | harvest",
+    "budget_left": "float \u2014 remaining budget in dollars",
+    "market_prices": "dict \u2014 crop prices for local and export markets",
+    "weather": {
+      "event": "string \u2014 rainy | dry | heatwave | normal | frost",
+      "rainfall_mm": "float",
+      "temperature": "float \u2014 celsius",
+      "humidity": "float \u2014 0.0 to 1.0",
+      "frost": "bool",
+      "rain_probability": "float \u2014 0.0 to 1.0"
+    },
+    "zones": [
+      {
+        "zone_id": "string \u2014 e.g. A1",
+        "crop_type": "string \u2014 wheat | corn | soy",
+        "soil_moisture": "float \u2014 0.0 to 1.0",
+        "crop_health": "float \u2014 0.0 to 1.0",
+        "growth_stage": "int \u2014 0=seed 1=sprout 2=growing 3=mature 4=ready",
+        "pest_risk": "float \u2014 0.0 to 1.0",
+        "days_to_ready": "int \u2014 estimated days until harvest ready",
+        "yield_potential": "float \u2014 0.0 to 1.0",
+        "is_harvested": "bool"
+      }
+    ],
+    "history": "list \u2014 last 5 days of observations"
+  },
+  "grader": {
+    "yield_weight": 0.40,
+    "timing_weight": 0.30,
+    "efficiency_weight": 0.30,
+    "description": "Scores yield ratio, harvest timing accuracy, and water efficiency"
+  },
+  "success_criteria": [
+    "Harvest at least 1 zone at growth_stage=4 (READY)",
+    "Keep crop_health above 0.5 for both zones",
+    "Stay within water budget of 200 litres",
+    "Generate positive revenue from selling harvested crops"
+  ]
+}

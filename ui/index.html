@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Farm Dashboard | AgroNexus</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary-fixed-variant": "#5c4300",
+              "secondary-container": "#0071c7",
+              "surface-bright": "#353940",
+              "on-secondary-container": "#f0f4ff",
+              "tertiary-fixed": "#ffdf9f",
+              "primary": "#6bfb9a",
+              "secondary-fixed": "#d3e4ff",
+              "tertiary": "#ffdc96",
+              "error": "#ffb4ab",
+              "tertiary-fixed-dim": "#f9bd22",
+              "on-secondary-fixed": "#001c38",
+              "on-error": "#690005",
+              "error-container": "#93000a",
+              "tertiary-container": "#f6bb1f",
+              "surface-container-high": "#262a31",
+              "inverse-on-surface": "#2d3137",
+              "on-tertiary-container": "#684c00",
+              "outline": "#869486",
+              "on-surface": "#dfe2eb",
+              "surface-container": "#1c2026",
+              "primary-container": "#4ade80",
+              "on-secondary": "#00315c",
+              "surface-container-lowest": "#0a0e14",
+              "background": "#10141a",
+              "on-primary": "#003919",
+              "surface-tint": "#4de082",
+              "secondary": "#a2c9ff",
+              "inverse-primary": "#006d36",
+              "outline-variant": "#3d4a3e",
+              "surface": "#10141a",
+              "surface-variant": "#31353c",
+              "primary-fixed-dim": "#4de082",
+              "inverse-surface": "#dfe2eb",
+              "on-primary-fixed-variant": "#005227",
+              "on-primary-container": "#005e2d",
+              "primary-fixed": "#6dfe9c",
+              "on-secondary-fixed-variant": "#004882",
+              "surface-container-highest": "#31353c",
+              "on-background": "#dfe2eb",
+              "on-primary-fixed": "#00210c",
+              "on-surface-variant": "#bccabb",
+              "on-error-container": "#ffdad6",
+              "secondary-fixed-dim": "#a2c9ff",
+              "on-tertiary-fixed": "#261a00",
+              "surface-container-low": "#181c22",
+              "on-tertiary": "#402d00",
+              "surface-dim": "#10141a"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Manrope"],
+              "label": ["Space Grotesk"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .isometric-grid {
+            transform: rotateX(55deg) rotateZ(-45deg);
+            transform-style: preserve-3d;
+        }
+        .glass-panel {
+            background: rgba(22, 27, 34, 0.7);
+            backdrop-filter: blur(12px);
+        }
+        .bioluminescent-glow {
+            box-shadow: 0 0 15px rgba(107, 251, 154, 0.15);
+        }
+        .weather-overlay {
+            pointer-events: none;
+            background: linear-gradient(to bottom, transparent, rgba(162, 201, 255, 0.05));
+        }
+        /* Live tile: overrides applied by JS */
+        .farm-tile-live { transition: background 0.4s, border-color 0.4s; }
+        .farm-tile-live .health-fill { transition: width 0.4s; }
+        /* Harvest pulse */
+        @keyframes harvest-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(249,189,34,0.5)} 50%{box-shadow:0 0 0 6px rgba(249,189,34,0)} }
+        .harvest-ready { animation: harvest-pulse 2s ease-in-out infinite !important; border-color: rgba(249,189,34,0.6) !important; }
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0a0e14; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #3d4a3e; border-radius: 2px; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary/30 overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full px-6 py-4 bg-[#161b22] border-b border-[#30363d] shadow-[0_0_15px_rgba(74,222,128,0.08)] sticky top-0 z-[100]">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#6bfb9a] text-3xl" style="font-variation-settings: 'FILL' 1;">precision_manufacturing</span>
+<span class="text-2xl font-bold tracking-tighter text-[#6bfb9a] uppercase font-headline">AgroNexus</span>
+</div>
+<nav class="hidden md:flex gap-8 items-center">
+<a class="font-headline text-sm font-bold text-[#6bfb9a] border-b-2 border-[#6bfb9a] pb-1 cursor-pointer active:scale-95 ease-in-out transition-all" href="/ui/">Dashboard</a>
+<a class="font-headline text-sm font-bold text-slate-400 hover:text-[#6bfb9a] transition-colors cursor-pointer active:scale-95 ease-in-out" href="/ui/control.html">Control</a>
+<a class="font-headline text-sm font-bold text-slate-400 hover:text-[#6bfb9a] transition-colors cursor-pointer active:scale-95 ease-in-out" href="/ui/demo.html">Demo</a>
+</nav>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-[#6bfb9a] transition-colors">notifications</span>
+<!-- API status dot -->
+<span id="api-dot" class="w-2 h-2 rounded-full bg-gray-500"></span>
+<span id="api-label" class="text-[10px] font-headline uppercase text-slate-500">connecting</span>
+<span class="material-symbols-outlined text-[#6bfb9a] cursor-pointer active:scale-95 transition-all">account_circle</span>
+</div>
+</header>
+<main class="p-6 space-y-6 max-w-[1600px] mx-auto">
+<!-- Stats Row -->
+<section class="grid grid-cols-2 md:grid-cols-5 gap-4">
+<div class="bg-surface-container-low p-4 rounded-xl border-l-2 border-primary/40 bioluminescent-glow">
+<p class="text-[10px] uppercase tracking-[0.1em] text-outline font-headline">Day Cycle</p>
+<div class="flex items-end justify-between mt-1">
+<span id="stat-day" class="text-2xl font-bold font-headline">42/90</span>
+<span class="material-symbols-outlined text-primary text-sm">calendar_today</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-4 rounded-xl border-l-2 border-tertiary/40">
+<p class="text-[10px] uppercase tracking-[0.1em] text-outline font-headline">Budget</p>
+<div class="flex items-end justify-between mt-1">
+<span id="stat-budget" class="text-2xl font-bold font-headline text-tertiary">$742</span>
+<span class="material-symbols-outlined text-tertiary text-sm">payments</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-4 rounded-xl border-l-2 border-primary-container/40">
+<p class="text-[10px] uppercase tracking-[0.1em] text-outline font-headline">Avg Health</p>
+<div class="flex items-end justify-between mt-1">
+<span id="stat-health" class="text-2xl font-bold font-headline text-primary-container">0.74</span>
+<span class="material-symbols-outlined text-primary-container text-sm">vital_signs</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-4 rounded-xl border-l-2 border-error/40">
+<p class="text-[10px] uppercase tracking-[0.1em] text-outline font-headline">Pest Risk</p>
+<div class="flex items-end justify-between mt-1">
+<span id="stat-pest" class="text-2xl font-bold font-headline text-error">0.31</span>
+<span class="material-symbols-outlined text-error text-sm">bug_report</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-4 rounded-xl border-l-2 border-secondary/40">
+<p class="text-[10px] uppercase tracking-[0.1em] text-outline font-headline">Revenue</p>
+<div class="flex items-end justify-between mt-1">
+<span id="stat-revenue" class="text-2xl font-bold font-headline text-secondary">$284</span>
+<span class="material-symbols-outlined text-secondary text-sm">trending_up</span>
+</div>
+</div>
+</section>
+<!-- Main Workspace -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 h-auto">
+<!-- LEFT Panel -->
+<aside class="lg:col-span-3 space-y-6">
+<div class="bg-surface-container-high p-5 rounded-xl space-y-4">
+<h3 class="font-headline text-xs font-bold uppercase tracking-widest text-on-surface/60">Session Control</h3>
+<div class="space-y-2">
+<div class="flex justify-between text-[10px] uppercase text-outline">
+<span>Season Progress</span>
+<span id="season-pct">46%</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-1.5 rounded-full overflow-hidden">
+<div id="season-bar" class="bg-primary h-full rounded-full shadow-[0_0_8px_rgba(107,251,154,0.5)] transition-all duration-700" style="width:46%"></div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-3 rounded-lg flex items-center gap-4">
+<span id="weather-icon" class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">cloudy_snowing</span>
+<div>
+<p id="weather-title" class="text-xs font-bold">Rain Forecast</p>
+<p id="weather-sub" class="text-[10px] text-outline">Moderate Precipitation 14:00</p>
+</div>
+</div>
+<div class="space-y-3">
+<p class="text-[10px] uppercase font-headline tracking-tighter">Task Complexity</p>
+<div class="flex gap-2">
+<button id="btn-easy"   onclick="setTask('task_1_easy')"   class="task-btn flex-1 py-1 text-[10px] border border-outline-variant hover:border-primary transition-colors rounded">Easy</button>
+<button id="btn-medium" onclick="setTask('task_2_medium')" class="task-btn flex-1 py-1 text-[10px] bg-primary/10 border border-primary text-primary rounded">Medium</button>
+<button id="btn-hard"   onclick="setTask('task_3_hard')"   class="task-btn flex-1 py-1 text-[10px] border border-outline-variant hover:border-error transition-colors rounded">Hard</button>
+</div>
+</div>
+<div class="space-y-2">
+<p class="text-[10px] uppercase font-headline tracking-tighter">Policy Protocol</p>
+<div class="space-y-1">
+<label class="flex items-center gap-2 cursor-pointer group">
+<input class="hidden peer" name="policy" type="radio" value="greedy" onchange="policy='greedy'"/>
+<div class="w-3 h-3 rounded-full border border-outline peer-checked:bg-primary peer-checked:border-primary"></div>
+<span class="text-xs text-outline group-hover:text-on-surface">Greedy Agent</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer group">
+<input checked="" class="hidden peer" name="policy" type="radio" value="random" onchange="policy='random'"/>
+<div class="w-3 h-3 rounded-full border border-outline peer-checked:bg-primary peer-checked:border-primary"></div>
+<span class="text-xs text-outline group-hover:text-on-surface">Stochastic (Random)</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer group">
+<input class="hidden peer" name="policy" type="radio" value="manual" onchange="policy='manual'"/>
+<div class="w-3 h-3 rounded-full border border-outline peer-checked:bg-primary peer-checked:border-primary"></div>
+<span class="text-xs text-outline group-hover:text-on-surface">Manual Override</span>
+</label>
+</div>
+</div>
+<div class="flex gap-2 pt-4 border-t border-outline-variant/30">
+<button id="run-btn"   onclick="handleRun()"   class="flex-1 bg-primary text-on-primary-container font-headline text-xs font-bold py-2 rounded-lg active:scale-95 transition-all">RUN</button>
+<button id="pause-btn" onclick="handlePause()" class="p-2 bg-surface-container-lowest text-on-surface border border-outline-variant rounded-lg hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-sm">pause</span></button>
+<button id="reset-btn" onclick="handleReset()" class="p-2 bg-surface-container-lowest text-error border border-error/30 rounded-lg hover:bg-error/10 transition-colors"><span class="material-symbols-outlined text-sm">restart_alt</span></button>
+</div>
+<!-- Episode score row (hidden until done) -->
+<div id="score-row" class="hidden pt-2 border-t border-outline-variant/30 text-center">
+<p class="text-[10px] uppercase text-outline font-headline">Episode Score</p>
+<p id="score-val" class="text-3xl font-bold text-primary font-headline mt-1">—</p>
+</div>
+</div>
+</aside>
+<!-- CENTER Canvas -->
+<section class="lg:col-span-6 relative bg-surface-container-lowest rounded-2xl overflow-hidden min-h-[500px] border border-outline-variant/10">
+<!-- Weather Overlay -->
+<div class="absolute inset-0 weather-overlay z-10 opacity-30"></div>
+<!-- Coordinate HUD -->
+<div class="absolute top-4 left-4 z-20 font-headline text-[10px] text-primary/60 tracking-widest bg-surface/80 px-2 py-1 rounded border border-primary/20">
+                    LAT: 45.4215° N | LON: 75.6972° W
+                </div>
+<!-- Isometric Container -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<!-- LIVE FARM GRID rendered by JS into #farm-grid -->
+<div id="farm-grid" class="isometric-grid grid grid-cols-4 grid-rows-4 gap-2 p-8 scale-75 md:scale-100 pointer-events-auto">
+<!-- Row 1 — static Stitch tiles (replaced by JS on load) -->
+<div class="w-24 h-24 bg-[#2D1B0E] border border-primary-container/30 relative group hover:translate-z-4 transition-transform duration-500 shadow-2xl">
+<div class="absolute inset-x-2 top-2 h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="bg-primary-container h-full w-[85%]"></div>
+</div>
+<div class="flex flex-col items-center justify-center h-full pt-4">
+<span class="material-symbols-outlined text-primary-container text-4xl" style="font-variation-settings: 'FILL' 1;">eco</span>
+<span class="text-[8px] font-headline text-white/50 mt-1">Z-01</span>
+</div>
+<!-- AI Robot Icon Overlay -->
+<div class="absolute -top-4 -left-4 animate-bounce">
+<span class="material-symbols-outlined text-secondary text-lg" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+</div>
+</div>
+<div class="w-24 h-24 bg-[#2D1B0E] border border-tertiary-container/30 relative shadow-2xl">
+<div class="absolute inset-x-2 top-2 h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="bg-tertiary-container h-full w-[55%]"></div>
+</div>
+<div class="flex flex-col items-center justify-center h-full pt-4">
+<span class="material-symbols-outlined text-tertiary text-4xl" style="font-variation-settings: 'FILL' 1;">potted_plant</span>
+<span class="text-[8px] font-headline text-white/50 mt-1">Z-02</span>
+</div>
+</div>
+<div class="w-24 h-24 bg-[#2D1B0E] border border-error/30 relative shadow-2xl">
+<div class="absolute inset-x-2 top-2 h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="bg-error h-full w-[30%]"></div>
+</div>
+<div class="flex flex-col items-center justify-center h-full pt-4">
+<span class="material-symbols-outlined text-error text-4xl" style="font-variation-settings: 'FILL' 0;">pest_control</span>
+<span class="text-[8px] font-headline text-white/50 mt-1">Z-03</span>
+</div>
+<div class="absolute bottom-1 right-1 flex gap-0.5">
+<div class="w-1 h-1 bg-error rounded-full animate-pulse"></div>
+<div class="w-1 h-1 bg-error rounded-full animate-pulse"></div>
+</div>
+</div>
+<div class="w-24 h-24 bg-[#2D1B0E] border border-tertiary/60 relative animate-pulse shadow-[0_0_20px_rgba(251,191,36,0.3)]">
+<div class="absolute inset-x-2 top-2 h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="bg-tertiary h-full w-full"></div>
+</div>
+<div class="flex flex-col items-center justify-center h-full pt-4">
+<span class="material-symbols-outlined text-tertiary text-4xl" style="font-variation-settings: 'FILL' 1;">grass</span>
+<span class="text-[8px] font-headline text-tertiary font-bold mt-1">HARVEST</span>
+</div>
+</div>
+<!-- Row 2-4 (Simplified placeholders) -->
+<div class="w-24 h-24 bg-[#2D1B0E] border border-outline-variant/20 relative"></div>
+<div class="w-24 h-24 bg-[#2D1B0E] border border-primary/20 relative">
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary/40 text-xs">water_drop</span>
+</div>
+</div>
+<div class="w-24 h-24 bg-[#2D1B0E] border border-outline-variant/20 relative"></div>
+<div class="w-24 h-24 bg-[#2D1B0E] border border-outline-variant/20 relative"></div>
+<div class="w-24 h-24 bg-[#2D1B0E] border border-outline-variant/20 relative"></div>
+<div class="w-24 h-24 bg-[#2D1B0E] border border-outline-variant/20 relative"></div>
+<div class="w-24 h-24 bg-[#2D1B0E] border border-outline-variant/20 relative"></div>
+<div class="w-24 h-24 bg-[#2D1B0E] border border-outline-variant/20 relative">
+<div class="absolute inset-x-2 bottom-2 h-1 bg-secondary rounded-full opacity-50"></div>
+</div>
+<div class="w-24 h-24 bg-[#2D1B0E] border border-outline-variant/20 relative"></div>
+<div class="w-24 h-24 bg-[#2D1B0E] border border-outline-variant/20 relative"></div>
+<div class="w-24 h-24 bg-[#2D1B0E] border border-outline-variant/20 relative"></div>
+<div class="w-24 h-24 bg-[#2D1B0E] border border-outline-variant/20 relative"></div>
+</div>
+</div>
+<div class="absolute bottom-4 right-4 z-20 flex gap-2">
+<div class="bg-surface-container p-2 rounded border border-outline-variant/20 flex flex-col items-center">
+<span class="text-[8px] uppercase font-headline">Zoom</span>
+<span class="text-xs font-bold">1.2x</span>
+</div>
+<div class="bg-surface-container p-2 rounded border border-outline-variant/20 flex flex-col items-center">
+<span class="text-[8px] uppercase font-headline">Sensors</span>
+<span class="text-xs font-bold text-primary">LIVE</span>
+</div>
+</div>
+<!-- Episode done banner -->
+<div id="done-banner" class="hidden absolute bottom-0 left-0 right-0 z-30 bg-[#f6bb1f]/90 text-[#684c00] text-center py-3 font-headline font-bold text-sm">
+  🏆 Episode Complete — Score: <span id="done-score">—</span>
+</div>
+</section>
+<!-- RIGHT Panel -->
+<aside class="lg:col-span-3 space-y-6">
+<div class="bg-surface-container-high p-5 rounded-xl space-y-6">
+<h3 class="font-headline text-xs font-bold uppercase tracking-widest text-on-surface/60">Farm Vitals</h3>
+<div id="vitals-list" class="space-y-4">
+<div class="space-y-1">
+<div class="flex justify-between text-[10px] font-bold">
+<span>Soil Moisture</span>
+<span id="v-moisture">68%</span>
+</div>
+<div class="h-1 bg-surface-container-lowest rounded-full overflow-hidden">
+<div id="v-moisture-bar" class="h-full bg-secondary rounded-full transition-all duration-500" style="width:68%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-[10px] font-bold">
+<span>Nitrogen Level</span>
+<span id="v-nitrogen">42%</span>
+</div>
+<div class="h-1 bg-surface-container-lowest rounded-full overflow-hidden">
+<div id="v-nitrogen-bar" class="h-full bg-tertiary-fixed-dim rounded-full transition-all duration-500" style="width:42%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-[10px] font-bold">
+<span>PH Balance</span>
+<span id="v-ph">7.2</span>
+</div>
+<div class="h-1 bg-surface-container-lowest rounded-full overflow-hidden">
+<div id="v-ph-bar" class="h-full bg-primary-container rounded-full transition-all duration-500" style="width:72%"></div>
+</div>
+</div>
+</div>
+<div class="space-y-3">
+<h4 class="text-[10px] uppercase font-headline text-outline flex items-center gap-2">
+<span class="material-symbols-outlined text-xs">list_alt</span>
+                            Action Log
+                        </h4>
+<div id="action-log" class="space-y-2 h-[200px] overflow-y-auto pr-2 custom-scrollbar">
+<div class="text-[10px] p-2 bg-surface-container-lowest border-l border-primary rounded-r">
+<span class="text-primary font-bold">09:12</span> Agent-01 deployed irrigator at Z-05
+                            </div>
+<div class="text-[10px] p-2 bg-surface-container-lowest border-l border-error rounded-r">
+<span class="text-error font-bold">09:15</span> Critical pest alert detected at Z-03
+                            </div>
+<div class="text-[10px] p-2 bg-surface-container-lowest border-l border-tertiary rounded-r">
+<span class="text-tertiary font-bold">09:18</span> Harvest window opened for Z-04
+                            </div>
+<div class="text-[10px] p-2 bg-surface-container-lowest border-l border-secondary rounded-r opacity-60">
+<span class="text-secondary font-bold">09:22</span> Cloud cover affecting sensor array
+                            </div>
+<div class="text-[10px] p-2 bg-surface-container-lowest border-l border-primary rounded-r opacity-50">
+<span class="text-primary font-bold">09:25</span> Nutrients cycle scheduled for 10:00
+                            </div>
+</div>
+</div>
+</div>
+</aside>
+</div>
+<!-- BOTTOM Rewards Chart -->
+<section class="bg-surface-container-high p-5 rounded-xl border border-outline-variant/10">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-headline text-xs font-bold uppercase tracking-widest text-on-surface/60">Yield &amp; Reward Analytics</h3>
+<div class="flex gap-4">
+<div class="flex items-center gap-2">
+<div class="w-3 h-1 bg-primary"></div>
+<span class="text-[10px] text-outline uppercase">Step Reward</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-1 bg-secondary"></div>
+<span class="text-[10px] text-outline uppercase">Cumulative Yield</span>
+</div>
+</div>
+</div>
+<div id="chart-area" class="h-[120px] w-full relative flex items-end gap-1">
+<!-- Grid lines -->
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-10">
+<div class="border-t border-outline"></div>
+<div class="border-t border-outline"></div>
+<div class="border-t border-outline"></div>
+</div>
+<!-- Static Stitch chart demo bars (replaced live once RUN is pressed) -->
+<div class="flex-1 h-[40%] bg-primary/20 rounded-t-sm border-t-2 border-primary relative group"><div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-surface-bright px-2 py-1 rounded text-[8px] z-50">+12.4</div></div>
+<div class="flex-1 h-[45%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
+<div class="flex-1 h-[38%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
+<div class="flex-1 h-[52%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
+<div class="flex-1 h-[60%] bg-primary/20 rounded-t-sm border-t-2 border-primary relative"><div class="absolute -bottom-1 left-0 w-full h-[150%] border-t-2 border-secondary rounded-full -rotate-12 opacity-80"></div></div>
+<div class="flex-1 h-[58%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
+<div class="flex-1 h-[65%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
+<div class="flex-1 h-[72%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
+<div class="flex-1 h-[68%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
+<div class="flex-1 h-[80%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
+<div class="flex-1 h-[75%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
+<div class="flex-1 h-[85%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
+<div class="flex-1 h-[92%] bg-primary/20 rounded-t-sm border-t-2 border-primary relative"><div class="absolute -bottom-2 left-0 w-full h-[180%] border-t-2 border-secondary rounded-full -rotate-6 opacity-80"></div></div>
+<div class="flex-1 h-[88%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
+<div class="flex-1 h-[95%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
+<div class="flex-1 h-[100%] bg-primary/20 rounded-t-sm border-t-2 border-primary"></div>
+</div>
+</section>
+</main>
+<!-- Navigation Overlay (Mobile) -->
+<nav class="fixed bottom-0 left-0 w-full md:hidden bg-[#10141a]/90 backdrop-blur-xl border-t border-[#3d4a3e]/20 flex justify-around items-center px-4 py-3 z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
+<a href="/ui/" class="flex flex-col items-center justify-center text-[#6bfb9a] bg-[#6bfb9a]/10 rounded-xl px-4 py-1 shadow-[0_0_10px_rgba(107,251,154,0.2)]">
+<span class="material-symbols-outlined text-xl">dashboard</span>
+<span class="font-headline text-[8px] uppercase tracking-wider mt-0.5">Dashboard</span>
+</a>
+<a href="/ui/control.html" class="flex flex-col items-center justify-center text-slate-500 opacity-70">
+<span class="material-symbols-outlined text-xl">settings_remote</span>
+<span class="font-headline text-[8px] uppercase tracking-wider mt-0.5">Control</span>
+</a>
+<a href="/ui/demo.html" class="flex flex-col items-center justify-center text-slate-500 opacity-70">
+<span class="material-symbols-outlined text-xl">sensors</span>
+<span class="font-headline text-[8px] uppercase tracking-wider mt-0.5">Demo</span>
+</a>
+<div class="flex flex-col items-center justify-center text-slate-500 opacity-70">
+<span class="material-symbols-outlined text-xl">grass</span>
+<span class="font-headline text-[8px] uppercase tracking-wider mt-0.5">Yield</span>
+</div>
+</nav>
+
+<!-- ═══════════════════════ LIVE API INTEGRATION ═══════════════════════ -->
+<script>
+/* ── Config ─────────────────────────────────────── */
+const API = 'http://localhost:8000';
+let taskId  = 'task_2_medium';
+let policy  = 'random';
+let running = false, paused = false, isDone = false;
+let obs = null, cumReward = 0, agentZone = 0, loopTimer = null;
+let liveMode = false; // becomes true once RUN pressed
+const maxDays = {task_1_easy:30, task_2_medium:60, task_3_hard:90};
+
+/* ── API helpers ────────────────────────────────── */
+async function apiFetch(p, opts={}) {
+  const r = await fetch(API+p, {headers:{'Content-Type':'application/json'}, ...opts});
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+/* ── Status badge ───────────────────────────────── */
+async function checkStatus() {
+  try {
+    await apiFetch('/');
+    document.getElementById('api-dot').className   = 'w-2 h-2 rounded-full bg-green-400';
+    document.getElementById('api-label').textContent = 'live';
+  } catch {
+    document.getElementById('api-dot').className   = 'w-2 h-2 rounded-full bg-red-400';
+    document.getElementById('api-label').textContent = 'offline';
+  }
+}
+
+/* ── Task buttons ───────────────────────────────── */
+function setTask(t) {
+  taskId = t;
+  document.querySelectorAll('.task-btn').forEach(b => {
+    b.className = 'task-btn flex-1 py-1 text-[10px] border border-outline-variant hover:border-primary transition-colors rounded';
+  });
+  const ids = {task_1_easy:'btn-easy', task_2_medium:'btn-medium', task_3_hard:'btn-hard'};
+  const el = document.getElementById(ids[t]);
+  if (el) el.className = 'task-btn flex-1 py-1 text-[10px] bg-primary/10 border border-primary text-primary rounded';
+  handleReset();
+}
+
+/* ── Grid renderer — produces Stitch-style tiles ── */
+const STAGE_ICONS  = ['grass','eco','potted_plant','potted_plant','grass'];
+const STAGE_COLORS = ['rgba(255,255,255,0.2)','#4ade80','#f9bd22','#f9bd22','#f9bd22'];
+
+function tileHtml(z, i, isAgent) {
+  const health  = z.health ?? z.crop_health ?? 1;
+  const pest    = z.pest_risk ?? 0;
+  const stage   = z.growth_stage ?? 0;
+  const harv    = z.is_harvested ?? false;
+  const ready   = stage === 4 && !harv;
+  const healthPct = Math.round(health * 100);
+  const healthColor = health > 0.7 ? '#4ade80' : health > 0.4 ? '#f9bd22' : '#ffb4ab';
+  const icon  = harv ? 'check_circle' : STAGE_ICONS[stage] ?? 'grass';
+  const color = harv ? 'rgba(255,255,255,0.2)' : STAGE_COLORS[stage] ?? '#4ade80';
+  const zid   = `Z-${String(i+1).padStart(2,'0')}`;
+  const label = ready ? '<span class="text-[8px] font-headline text-tertiary font-bold mt-1">HARVEST</span>' :
+                harv  ? '<span class="text-[8px] font-headline text-white/30 mt-1">DONE</span>'      :
+                        `<span class="text-[8px] font-headline text-white/50 mt-1">${zid}</span>`;
+  const pestDots= pest>0.4 ? `<div class="absolute bottom-1 right-1 flex gap-0.5">${'<div class="w-1 h-1 bg-error rounded-full animate-pulse"></div>'.repeat(Math.min(3,Math.ceil(pest*3)))}</div>` : '';
+  const agentBadge = isAgent ? `<div class="absolute -top-4 -left-4 animate-bounce"><span class="material-symbols-outlined text-secondary text-lg" style="font-variation-settings:'FILL' 1">smart_toy</span></div>` : '';
+  const border = ready ? 'border-tertiary/60'
+               : health > 0.7 ? 'border-primary-container/30'
+               : health > 0.4 ? 'border-tertiary-container/30'
+               : 'border-error/30';
+  const pulse  = ready ? 'animate-pulse shadow-[0_0_20px_rgba(251,191,36,0.3)]' : 'shadow-2xl';
+  return `
+    <div class="w-24 h-24 bg-[#2D1B0E] border ${border} relative ${pulse} farm-tile-live">
+      <div class="absolute inset-x-2 top-2 h-1 bg-surface-container-highest rounded-full overflow-hidden">
+        <div class="health-fill h-full rounded-full" style="width:${healthPct}%;background:${healthColor}"></div>
+      </div>
+      <div class="flex flex-col items-center justify-center h-full pt-4">
+        <span class="material-symbols-outlined text-4xl" style="color:${color};font-variation-settings:'FILL' 1">${icon}</span>
+        ${label}
+      </div>
+      ${pestDots}
+      ${agentBadge}
+    </div>`;
+}
+
+function renderGrid(zones) {
+  if (!zones || !zones.length) return;
+  const grid = document.getElementById('farm-grid');
+  const cols = Math.ceil(Math.sqrt(zones.length));
+  grid.style.gridTemplateColumns = `repeat(${cols}, 96px)`;
+  grid.style.gridTemplateRows    = `repeat(${cols}, 96px)`;
+  grid.innerHTML = zones.map((z,i) => tileHtml(z, i, i === agentZone && running)).join('');
+}
+
+/* ── Vitals ─────────────────────────────────────── */
+function updateVitals(zones) {
+  if (!zones || !zones.length) return;
+  const avgM = zones.reduce((s,z)=>s+(z.soil_moisture??0.5),0)/zones.length;
+  const avgH = zones.reduce((s,z)=>s+(z.health??z.crop_health??0),0)/zones.length;
+  const avgN = zones.reduce((s,z)=>s+(z.nitrogen_level??0.4),0)/zones.length;
+  document.getElementById('v-moisture').textContent     = Math.round(avgM*100)+'%';
+  document.getElementById('v-moisture-bar').style.width = Math.round(avgM*100)+'%';
+  document.getElementById('v-nitrogen').textContent     = Math.round(avgN*100)+'%';
+  document.getElementById('v-nitrogen-bar').style.width = Math.round(avgN*100)+'%';
+  // ph ~7.0 mapped roughly from health
+  const ph = (6.5 + avgH).toFixed(1);
+  document.getElementById('v-ph').textContent     = ph;
+  document.getElementById('v-ph-bar').style.width = Math.round(avgH*100)+'%';
+}
+
+/* ── Stats row ──────────────────────────────────── */
+function updateStats(observation, reward) {
+  obs = observation;
+  const zones  = obs?.zones || [];
+  const day    = obs?.day ?? 0;
+  const maxD   = maxDays[taskId] || 90;
+  const budget = obs?.budget ?? obs?.budget_left ?? 0;
+  const stepR  = typeof reward==='object' ? (reward?.step_reward??0) : +(reward??0);
+  const epR    = typeof reward==='object' ? (reward?.episode_reward??0) : stepR;
+  cumReward    = epR;
+
+  document.getElementById('stat-day').textContent    = `${day}/${maxD}`;
+  document.getElementById('stat-budget').textContent  = `$${Math.round(budget)}`;
+  const avgH = zones.length ? zones.reduce((s,z)=>s+(z.health??z.crop_health??0),0)/zones.length : 0;
+  const avgP = zones.length ? zones.reduce((s,z)=>s+(z.pest_risk??0),0)/zones.length : 0;
+  document.getElementById('stat-health').textContent  = avgH.toFixed(2);
+  document.getElementById('stat-pest').textContent   = avgP.toFixed(2);
+  document.getElementById('stat-revenue').textContent = `$${Math.round(epR*100)}`;
+
+  // Season bar
+  const pct = maxD > 0 ? Math.round((day/maxD)*100) : 0;
+  document.getElementById('season-pct').textContent = pct+'%';
+  document.getElementById('season-bar').style.width  = pct+'%';
+
+  // Weather
+  const w    = obs?.weather_forecast ?? obs?.weather ?? {};
+  const cond = (w.condition ?? w.event ?? 'normal').toLowerCase();
+  const wMap = {
+    rain:     {i:'rainy',           t:'Rain Forecast', s:w.rainfall_mm!=null?`${w.rainfall_mm.toFixed(1)}mm precipitation`:'Precipitation expected'},
+    rainy:    {i:'rainy',           t:'Rainy',         s:'Moderate Precipitation'},
+    heatwave: {i:'local_fire_department', t:'Heat Wave',     s:w.temperature_c!=null?`${w.temperature_c.toFixed(1)}°C`:'Extreme heat'},
+    frost:    {i:'ac_unit',         t:'Frost Alert',   s:'Sub-zero conditions'},
+    normal:   {i:'wb_sunny',        t:'Normal',        s:w.rainfall_mm!=null?`Rain: ${w.rainfall_mm.toFixed(1)}mm`:'Clear conditions'},
+  };
+  const wi = wMap[cond] ?? wMap.normal;
+  document.getElementById('weather-icon').textContent  = wi.i;
+  document.getElementById('weather-title').textContent = wi.t;
+  document.getElementById('weather-sub').textContent   = wi.s;
+
+  if (liveMode) {
+    renderGrid(zones);
+    updateVitals(zones);
+    addChartBar(stepR, epR);
+  }
+}
+
+/* ── Action Log ─────────────────────────────────── */
+const LOG_BORDER = {
+  irrigate:'border-secondary', fertilize:'border-primary', pesticide:'border-error',
+  harvest:'border-tertiary', wait:'border-outline-variant', sell:'border-secondary', reset:'border-primary'
+};
+const LOG_TEXT = {
+  irrigate:'text-secondary', fertilize:'text-primary', pesticide:'text-error',
+  harvest:'text-tertiary', wait:'text-outline', sell:'text-secondary', reset:'text-primary'
+};
+function addLog(day, action, zone, reward) {
+  const bc  = LOG_BORDER[action] || 'border-outline-variant';
+  const tc  = LOG_TEXT[action]   || 'text-outline';
+  const now = new Date();
+  const ts  = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const zStr = zone != null ? ` Z-${String(zone+1).padStart(2,'0')}` : '';
+  const rStr = reward != null && !isNaN(reward) ? ` [${(+reward).toFixed(3)}]` : '';
+  const el = document.createElement('div');
+  el.className = `text-[10px] p-2 bg-surface-container-lowest border-l ${bc} rounded-r`;
+  el.innerHTML = `<span class="${tc} font-bold">${ts}</span> Agent-01 ${action}${zStr}${rStr}`;
+  const log = document.getElementById('action-log');
+  log.insertAdjacentElement('afterbegin', el);
+  while (log.children.length > 60) log.removeChild(log.lastChild);
+}
+
+/* ── Chart ──────────────────────────────────────── */
+const chartHistory = [];
+function addChartBar(stepR, cumR) {
+  chartHistory.push({stepR, cumR});
+  if (chartHistory.length > 60) chartHistory.shift();
+  const area = document.getElementById('chart-area');
+  // Remove old live bars (keep static grid lines div first)
+  area.querySelectorAll('.live-bar').forEach(b => b.remove());
+  const maxCum = Math.max(...chartHistory.map(b=>Math.abs(b.cumR)), 0.001);
+  chartHistory.forEach(b => {
+    const h = Math.max(4, Math.round((Math.abs(b.cumR)/maxCum)*110));
+    const div = document.createElement('div');
+    div.className = 'live-bar flex-1 rounded-t-sm border-t-2 border-primary bg-primary/20';
+    div.style.height = h+'px';
+    area.appendChild(div);
+  });
+}
+
+/* ── Greedy / random policy ─────────────────────── */
+function pickAction() {
+  if (!obs) return {action_type:'wait', days:1};
+  const zones = obs.zones || [];
+  if (policy === 'greedy') {
+    for (let i=0; i<zones.length; i++) if (zones[i].growth_stage===4 && !zones[i].is_harvested) return {action_type:'harvest',zone:i};
+    for (let i=0; i<zones.length; i++) if ((zones[i].pest_risk??0)>0.6 && !zones[i].is_harvested) return {action_type:'pesticide',zone:i};
+    const active = zones.map((z,i)=>({z,i})).filter(x=>!x.z.is_harvested);
+    if (active.length) {
+      const d = active.reduce((a,b)=>(a.z.soil_moisture??1)<(b.z.soil_moisture??1)?a:b);
+      if ((d.z.soil_moisture??1)<0.35) return {action_type:'irrigate',zone:d.i,amount:10};
+    }
+    return {action_type:'wait', days:1};
+  }
+  const types=['irrigate','fertilize','pesticide','harvest','wait'];
+  return {action_type:types[Math.floor(Math.random()*types.length)], zone:Math.floor(Math.random()*(zones.length||1)), amount:10, days:1};
+}
+
+/* ── Run loop ───────────────────────────────────── */
+const SPEEDS = {'0.5':2000, '1':1000, '2':500, '5':200};
+async function runLoop() {
+  if (paused || isDone || !obs) return;
+  const a = pickAction();
+  if (a.zone != null) agentZone = a.zone;
+  try {
+    const d = await apiFetch('/step', {method:'POST', body:JSON.stringify({task_id:taskId, ...a})});
+    isDone = d.done;
+    const o = d.obs ?? d.observation ?? obs;
+    updateStats(o, d.reward);
+    const stepR = typeof d.reward==='object'?(d.reward?.step_reward??0):+(d.reward??0);
+    addLog(o?.day??0, a.action_type, a.zone??null, stepR);
+    if (d.done) {
+      running = false;
+      document.getElementById('run-btn').textContent = 'RUN';
+      try {
+        const g = await apiFetch('/grader', {method:'POST', body:JSON.stringify({task_id:taskId})});
+        const s = g.grader_result?.final_score ?? 0;
+        document.getElementById('done-banner').classList.remove('hidden');
+        document.getElementById('done-score').textContent = s.toFixed(3);
+        document.getElementById('score-row').classList.remove('hidden');
+        document.getElementById('score-val').textContent  = s.toFixed(3);
+      } catch(_) {}
+      return;
+    }
+  } catch(e) { running = false; return; }
+  const speed = document.getElementById('speed-select')?.value ?? '1';
+  loopTimer = setTimeout(runLoop, SPEEDS[speed] ?? 1000);
+}
+
+/* ── Controls ───────────────────────────────────── */
+async function handleReset() {
+  clearTimeout(loopTimer);
+  running = false; paused = false; isDone = false; cumReward = 0; agentZone = 0; liveMode = false;
+  chartHistory.length = 0;
+  document.getElementById('done-banner').classList.add('hidden');
+  document.getElementById('score-row').classList.add('hidden');
+  document.getElementById('run-btn').textContent = 'RUN';
+  // Restore Stitch static chart bars
+  restoreStaticChart();
+  // Restore Stitch static grid
+  restoreStaticGrid();
+  try {
+    const d = await apiFetch('/reset', {method:'POST', body:JSON.stringify({task_id:taskId})});
+    obs = d.obs ?? d.observation ?? d;
+    updateStats(obs, {step_reward:0, episode_reward:0});
+    addLog(obs?.day??1, 'reset', null, null);
+  } catch(e) { console.warn('reset failed', e.message); }
+}
+
+function handleRun() {
+  if (isDone) return;
+  liveMode = true;
+  // Replace static grid with live grid on first run
+  renderGrid(obs?.zones || []);
+  if (running && !paused) {
+    paused = true; clearTimeout(loopTimer);
+    document.getElementById('run-btn').textContent = 'RESUME';
+    return;
+  }
+  paused = false; running = true;
+  document.getElementById('run-btn').textContent = 'PAUSE';
+  loopTimer = setTimeout(runLoop, 100);
+}
+
+function handlePause() {
+  paused = true; running = false; clearTimeout(loopTimer);
+  document.getElementById('run-btn').textContent = 'RUN';
+}
+
+/* ── Restore static Stitch chart/grid on reset ── */
+function restoreStaticChart() {
+  const area = document.getElementById('chart-area');
+  area.querySelectorAll('.live-bar').forEach(b=>b.remove());
+  if (!area.querySelector('[data-static]')) {
+    const heights=['40','45','38','52','60','58','65','72','68','80','75','85','92','88','95','100'];
+    heights.forEach(h=>{
+      const d=document.createElement('div');
+      d.setAttribute('data-static','1');
+      d.className=`flex-1 h-[${h}%] bg-primary/20 rounded-t-sm border-t-2 border-primary`;
+      area.appendChild(d);
+    });
+  }
+}
+function restoreStaticGrid() {
+  if (liveMode) return; // already live
+  // Grid stays as Stitch HTML until first RUN
+}
+
+/* ── Init ───────────────────────────────────────── */
+checkStatus();
+handleReset();
+setInterval(checkStatus, 15000);
+</script>
+
+<!-- Speed selector pill (bottom right) -->
+<div class="fixed bottom-16 md:bottom-6 right-6 z-50 flex items-center gap-2 bg-surface-container-high border border-outline-variant/20 px-3 py-2 rounded-xl shadow-xl">
+  <span class="text-[10px] uppercase font-headline text-outline">Speed</span>
+  <select id="speed-select" class="bg-transparent text-[11px] font-headline text-primary outline-none cursor-pointer">
+    <option value="0.5">0.5×</option>
+    <option value="1" selected>1×</option>
+    <option value="2">2×</option>
+    <option value="5">5×</option>
+  </select>
+</div>
+
+</body></html>

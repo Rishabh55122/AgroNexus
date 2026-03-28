@@ -1,0 +1,58 @@
+{
+  "task_id": "task_2_medium",
+  "name": "Drought Season Management",
+  "description": "Manage a 4-zone farm across a 60-day drought season. Water supply is strictly limited. Agent must triage which zones to prioritize when resources run out.",
+  "difficulty": "medium",
+  "episode_days": 60,
+  "num_zones": 4,
+  "crops": ["wheat", "corn"],
+  "scenario": "drought",
+  "budget": 800.0,
+  "water_budget": 300.0,
+  "seed": 42,
+  "target_score_min": 0.4,
+  "target_score_max": 0.7,
+  "action_schema": {
+    "action_type": "string \u2014 one of: irrigate, fertilize, pesticide, harvest, wait, sell",
+    "zone": "int \u2014 zone index (0-based)",
+    "amount": "float \u2014 water litres for irrigate, tons for sell",
+    "type": "string \u2014 fertilizer type: nitrogen | phosphorus | potassium",
+    "days": "int \u2014 number of days to wait",
+    "market": "string \u2014 local | export",
+    "crop": "string \u2014 wheat | corn | soy"
+  },
+  "observation_space": {
+    "day": "int \u2014 current day (1 to 60)",
+    "season_phase": "string \u2014 planting | growing | harvest",
+    "budget_left": "float",
+    "market_prices": "dict",
+    "weather": {
+      "event": "string \u2014 rainy | dry | heatwave | normal | frost",
+      "rainfall_mm": "float",
+      "temperature": "float",
+      "humidity": "float",
+      "frost": "bool",
+      "rain_probability": "float"
+    },
+    "zones": "list[ZoneObservation] \u2014 4 zones",
+    "history": "list \u2014 last 5 days"
+  },
+  "grader": {
+    "survival_weight": 0.35,
+    "water_weight": 0.30,
+    "yield_weight": 0.25,
+    "pest_weight": 0.10,
+    "description": "Scores zone survival rate, water constraint compliance, yield under drought, pest management"
+  },
+  "constraints": {
+    "water_budget": 300.0,
+    "drought_trigger_day": "random between day 20-40 (seed=42)",
+    "note": "Agent must ration water \u2014 overuse linearly penalized"
+  },
+  "success_criteria": [
+    "Keep at least 3 of 4 zones alive (health > 0.1)",
+    "Stay within water budget of 300 litres",
+    "Harvest at least 2 zones before season ends",
+    "Manage pest risk below 0.5 average across all zones"
+  ]
+}

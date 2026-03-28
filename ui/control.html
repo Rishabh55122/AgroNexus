@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Manual Control | AgroNexus</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary-fixed": "#261a00",
+              "inverse-surface": "#dfe2eb",
+              "secondary-fixed": "#6dfe9c",
+              "on-secondary-fixed": "#00210c",
+              "surface-container-low": "#181c22",
+              "on-tertiary": "#402d00",
+              "on-surface": "#dfe2eb",
+              "on-primary-fixed-variant": "#004882",
+              "on-secondary": "#003919",
+              "tertiary-fixed-dim": "#f9bd22",
+              "surface-container": "#1c2026",
+              "inverse-on-surface": "#2d3137",
+              "primary-container": "#58a6ff",
+              "error": "#ffb4ab",
+              "error-container": "#93000a",
+              "surface-dim": "#10141a",
+              "secondary-container": "#00b55d",
+              "inverse-primary": "#0060aa",
+              "primary-fixed": "#d3e4ff",
+              "on-tertiary-container": "#4b3600",
+              "on-error-container": "#ffdad6",
+              "tertiary": "#f9bd22",
+              "surface": "#10141a",
+              "outline": "#8b919d",
+              "surface-bright": "#353940",
+              "primary": "#a2c9ff",
+              "on-background": "#dfe2eb",
+              "surface-tint": "#a2c9ff",
+              "tertiary-container": "#cf9b00",
+              "on-secondary-fixed-variant": "#005227",
+              "outline-variant": "#414752",
+              "primary-fixed-dim": "#a2c9ff",
+              "secondary-fixed-dim": "#4de082",
+              "tertiary-fixed": "#ffdf9f",
+              "on-secondary-container": "#003e1c",
+              "surface-container-high": "#262a31",
+              "on-error": "#690005",
+              "on-primary": "#00315c",
+              "surface-container-lowest": "#0a0e14",
+              "on-surface-variant": "#c0c7d4",
+              "surface-variant": "#31353c",
+              "on-primary-container": "#003a6b",
+              "on-primary-fixed": "#001c38",
+              "surface-container-highest": "#31353c",
+              "on-tertiary-fixed-variant": "#5c4300",
+              "secondary": "#4de082",
+              "background": "#10141a"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Inter"],
+              "label": ["Space Grotesk"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #10141a; color: #dfe2eb; }
+        .font-space { font-family: 'Space Grotesk', sans-serif; }
+        .isometric-grid {
+            transform: rotateX(60deg) rotateZ(-45deg);
+            transform-style: preserve-3d;
+        }
+        .iso-tile {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .iso-tile:hover {
+            transform: translateZ(12px);
+            box-shadow: 0 10px 30px rgba(162, 201, 255, 0.2);
+        }
+        .iso-tile.selected {
+            box-shadow: 0 0 20px rgba(162,201,255,0.4) !important;
+        }
+        .glass-panel {
+            background: rgba(24, 28, 34, 0.6);
+            backdrop-filter: blur(20px);
+        }
+        /* Result flash */
+        @keyframes result-glow { 0%{opacity:0;transform:translateY(6px)} 100%{opacity:1;transform:translateY(0)} }
+        .result-flash { animation: result-glow 0.3s ease forwards; }
+        /* Custom range styling */
+        input[type=range] { cursor: pointer; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background min-h-screen overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 w-full bg-[#10141a]/60 backdrop-blur-xl bg-gradient-to-b from-[#161b22] to-transparent shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-blue-400 text-2xl" data-icon="precision_manufacturing">precision_manufacturing</span>
+<h1 class="text-2xl font-bold tracking-tighter text-blue-400 font-headline">AgroNexus</h1>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="font-headline tracking-wider uppercase text-sm text-slate-400 hover:text-white transition-colors" href="/ui/">Dashboard</a>
+<a class="font-headline tracking-wider uppercase text-sm text-blue-400 border-b-2 border-blue-400 pb-1" href="#">Control</a>
+<a class="font-headline tracking-wider uppercase text-sm text-slate-400 hover:text-white transition-colors" href="/ui/demo.html">Demo</a>
+</nav>
+<div class="flex items-center gap-4">
+<span id="api-badge" class="font-headline tracking-wider uppercase text-xs px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded-full">OPERATIONAL</span>
+</div>
+</header>
+<main class="pt-24 pb-24 px-6 md:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-[1600px] mx-auto">
+<!-- LEFT PANEL: Action Builder -->
+<aside class="lg:col-span-3 space-y-6">
+<div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/15 shadow-2xl">
+<div class="flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="tune">tune</span>
+<h2 class="font-headline font-bold text-lg tracking-tight uppercase">Action Builder</h2>
+</div>
+<form class="space-y-6" onsubmit="return false">
+<div class="space-y-2">
+<label class="font-label text-xs uppercase tracking-widest text-on-surface-variant">Action Type</label>
+<select id="action-type" class="w-full bg-surface-container-lowest border-none border-b-2 border-outline-variant focus:ring-0 focus:border-primary text-on-surface py-3 rounded-t-lg transition-all font-body">
+<option value="irrigate">Irrigation Pulse</option>
+<option value="fertilize">Nutrient Injection</option>
+<option value="harvest">Harvest Protocol</option>
+<option value="pesticide">Pest Mitigation</option>
+<option value="wait">Wait (Skip Turn)</option>
+</select>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<label class="font-label text-xs uppercase tracking-widest text-on-surface-variant">Target Zone</label>
+<span id="zone-display" class="font-headline text-primary font-bold">09</span>
+</div>
+<input id="zone-slider" class="w-full accent-primary bg-surface-container-highest h-1 rounded-full appearance-none" max="15" min="0" type="range" value="9" oninput="updateZoneDisplay(this.value)"/>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<label class="font-label text-xs uppercase tracking-widest text-on-surface-variant">Flow Amount</label>
+<span id="flow-display" class="font-headline text-primary font-bold">32 L/m</span>
+</div>
+<input id="flow-slider" class="w-full accent-primary bg-surface-container-highest h-1 rounded-full appearance-none" max="50" min="0" type="range" value="32" oninput="updateFlowDisplay(this.value)"/>
+</div>
+<div class="space-y-2">
+<label class="font-label text-xs uppercase tracking-widest text-on-surface-variant">Task Complexity</label>
+<div class="grid grid-cols-3 gap-2">
+<button onclick="setTask('task_1_easy',this)"   class="task-btn bg-surface-container-high text-on-surface-variant p-2 rounded-xl text-xs font-headline uppercase hover:bg-surface-container-highest transition-all" type="button">Easy</button>
+<button onclick="setTask('task_2_medium',this)" class="task-btn bg-primary/20 text-primary border border-primary/30 p-2 rounded-xl text-xs font-headline uppercase transition-all" type="button">Medium</button>
+<button onclick="setTask('task_3_hard',this)"   class="task-btn bg-surface-container-high text-on-surface-variant p-2 rounded-xl text-xs font-headline uppercase hover:bg-surface-container-highest transition-all" type="button">Hard</button>
+</div>
+</div>
+<div class="space-y-2">
+<label class="font-label text-xs uppercase tracking-widest text-on-surface-variant">Market Target</label>
+<select class="w-full bg-surface-container-lowest border-none border-b-2 border-outline-variant focus:ring-0 focus:border-primary text-on-surface py-3 rounded-t-lg transition-all font-body">
+<option>Premium Wholesale</option>
+<option>Direct Export</option>
+<option>Local Exchange</option>
+</select>
+</div>
+<button id="submit-btn" onclick="submitAction()" class="w-full py-4 bg-gradient-to-r from-primary-container to-primary text-on-primary font-headline font-bold uppercase tracking-widest rounded-xl shadow-lg shadow-primary/20 active:scale-95 transition-all" type="button">
+  Submit Action
+</button>
+<!-- Reset button -->
+<button onclick="resetSim()" class="w-full py-2 bg-surface-container-lowest border border-outline-variant/20 text-on-surface-variant font-headline text-xs uppercase rounded-xl hover:border-error/40 hover:text-error transition-all" type="button">
+  Reset Environment
+</button>
+</form>
+</div>
+<!-- Contextual Resource Feed -->
+<div class="bg-surface-container-low p-4 rounded-xl border border-outline-variant/10">
+<p class="text-[10px] font-label uppercase text-outline-variant mb-3 tracking-tighter">System Resources</p>
+<div class="space-y-3">
+<div class="flex justify-between items-center">
+<span class="text-xs font-body text-on-surface-variant">Water Reservoir</span>
+<div class="w-24 h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div id="res-water" class="bg-primary h-full transition-all duration-500" style="width:72%"></div>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-xs font-body text-on-surface-variant">Budget Remaining</span>
+<div class="w-24 h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div id="res-budget" class="bg-secondary h-full transition-all duration-500" style="width:88%"></div>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-xs font-body text-on-surface-variant">Power Grid</span>
+<div class="w-24 h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="bg-tertiary h-full" style="width:100%"></div>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<!-- CENTER: Isometric Farm Grid -->
+<section class="lg:col-span-6 flex flex-col items-center justify-center min-h-[600px] relative">
+<div class="absolute inset-0 bg-gradient-to-tr from-primary/5 via-transparent to-secondary/5 pointer-events-none"></div>
+<!-- LIVE FARM GRID — rendered by JS -->
+<div id="farm-grid" class="isometric-grid grid grid-cols-4 grid-rows-4 gap-3 w-full max-w-[500px] perspective-[1000px]">
+<!-- Zones 0-15 — static Stitch tiles (replaced by JS on load) -->
+<!-- Zone 0 -->
+<div class="iso-tile w-full aspect-square bg-[#2D1B0E] rounded-md border border-white/5 relative overflow-hidden group">
+<div class="absolute inset-0 bg-[#4ADE80] opacity-40"></div>
+<span class="absolute top-1 left-1 text-[8px] font-headline text-white/40">00</span>
+</div>
+<!-- Zone 1 -->
+<div class="iso-tile w-full aspect-square bg-[#2D1B0E] rounded-md border border-white/5 relative overflow-hidden group">
+<div class="absolute inset-x-0 bottom-0 h-1/2 bg-[#4ADE80] opacity-60"></div>
+<span class="absolute top-1 left-1 text-[8px] font-headline text-white/40">01</span>
+</div>
+<!-- Zone 2 -->
+<div class="iso-tile w-full aspect-square bg-[#2D1B0E] rounded-md border border-white/5 relative">
+<span class="absolute top-1 left-1 text-[8px] font-headline text-white/40">02</span>
+<div class="absolute inset-2 border-2 border-[#38BDF8]/30 rounded-full animate-pulse"></div>
+</div>
+<!-- Zone 3 -->
+<div class="iso-tile w-full aspect-square bg-[#2D1B0E] rounded-md border border-white/5 relative overflow-hidden">
+<div class="absolute inset-0 bg-[#FBBF24] opacity-70"></div>
+<span class="absolute top-1 left-1 text-[8px] font-headline text-white/40">03</span>
+</div>
+<!-- Zone 4 -->
+<div class="iso-tile w-full aspect-square bg-[#2D1B0E] rounded-md border border-white/5 relative">
+<span class="absolute top-1 left-1 text-[8px] font-headline text-white/40">04</span>
+</div>
+<!-- Zone 5 (Active Selection) -->
+<div class="iso-tile w-full aspect-square bg-[#2D1B0E] rounded-md border-2 border-primary shadow-[0_0_20px_rgba(162,201,255,0.4)] relative overflow-hidden translate-z-4">
+<div class="absolute inset-0 bg-[#4ADE80]"></div>
+<span class="absolute top-1 left-1 text-[8px] font-headline text-on-primary">05</span>
+<div class="absolute inset-0 bg-primary/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-white animate-bounce" data-icon="location_on" style="font-variation-settings: 'FILL' 1;">location_on</span>
+</div>
+</div>
+<!-- Zone 6 -->
+<div class="iso-tile w-full aspect-square bg-[#2D1B0E] rounded-md border border-white/5 relative overflow-hidden">
+<div class="absolute inset-0 bg-[#4ADE80] opacity-30"></div>
+<span class="absolute top-1 left-1 text-[8px] font-headline text-white/40">06</span>
+</div>
+<!-- Zone 7 -->
+<div class="iso-tile w-full aspect-square bg-[#2D1B0E] rounded-md border border-white/5 relative">
+<span class="absolute top-1 left-1 text-[8px] font-headline text-white/40">07</span>
+</div>
+<!-- Zone 8 -->
+<div class="iso-tile w-full aspect-square bg-[#2D1B0E] rounded-md border border-white/5 relative overflow-hidden">
+<div class="absolute inset-0 bg-[#FBBF24] opacity-20"></div>
+<span class="absolute top-1 left-1 text-[8px] font-headline text-white/40">08</span>
+</div>
+<!-- Zone 9 (current target) -->
+<div id="tile-09" class="iso-tile selected w-full aspect-square bg-[#2D1B0E] rounded-md border-2 border-primary shadow-[0_0_20px_rgba(162,201,255,0.4)] relative">
+<span class="absolute top-1 left-1 text-[8px] font-headline text-white/40">09</span>
+</div>
+<!-- Zone 10 -->
+<div class="iso-tile w-full aspect-square bg-[#2D1B0E] rounded-md border border-white/5 relative overflow-hidden">
+<div class="absolute inset-0 bg-[#4ADE80] opacity-80"></div>
+<span class="absolute top-1 left-1 text-[8px] font-headline text-white/40">10</span>
+</div>
+<!-- Zone 11 -->
+<div class="iso-tile w-full aspect-square bg-[#2D1B0E] rounded-md border border-white/5 relative">
+<span class="absolute top-1 left-1 text-[8px] font-headline text-white/40">11</span>
+</div>
+<!-- Zone 12 -->
+<div class="iso-tile w-full aspect-square bg-[#2D1B0E] rounded-md border border-white/5 relative">
+<span class="absolute top-1 left-1 text-[8px] font-headline text-white/40">12</span>
+</div>
+<!-- Zone 13 -->
+<div class="iso-tile w-full aspect-square bg-[#2D1B0E] rounded-md border border-white/5 relative overflow-hidden">
+<div class="absolute inset-0 bg-[#FBBF24] opacity-90"></div>
+<span class="absolute top-1 left-1 text-[8px] font-headline text-white/40">13</span>
+</div>
+<!-- Zone 14 -->
+<div class="iso-tile w-full aspect-square bg-[#2D1B0E] rounded-md border border-white/5 relative overflow-hidden">
+<div class="absolute inset-0 bg-[#4ADE80] opacity-50"></div>
+<span class="absolute top-1 left-1 text-[8px] font-headline text-white/40">14</span>
+</div>
+<!-- Zone 15 -->
+<div class="iso-tile w-full aspect-square bg-[#2D1B0E] rounded-md border border-white/5 relative">
+<span class="absolute top-1 left-1 text-[8px] font-headline text-white/40">15</span>
+</div>
+</div>
+<!-- Legend -->
+<div class="mt-20 flex gap-8">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 bg-[#2D1B0E] rounded-sm"></div>
+<span class="text-[10px] font-label uppercase text-on-surface-variant">Fallow Soil</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 bg-[#4ADE80] rounded-sm"></div>
+<span class="text-[10px] font-label uppercase text-on-surface-variant">Active Growth</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 bg-[#FBBF24] rounded-sm"></div>
+<span class="text-[10px] font-label uppercase text-on-surface-variant">Peak Readiness</span>
+</div>
+</div>
+</section>
+<!-- RIGHT PANEL: Live Stats + Response -->
+<aside class="lg:col-span-3 space-y-6">
+<!-- Last Action Results -->
+<div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/15 shadow-xl relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-secondary/5 blur-3xl rounded-full"></div>
+<h3 class="font-headline font-bold text-sm tracking-widest uppercase text-on-surface-variant mb-6 border-l-2 border-secondary pl-3">Response Node</h3>
+<div class="space-y-6 relative z-10">
+<div class="flex justify-between items-center">
+<span class="text-xs font-body text-outline">Status</span>
+<span id="resp-status" class="text-xs font-headline font-bold text-[#22C55E] flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="check_circle">check_circle</span>
+SUCCESS
+</span>
+</div>
+<div class="p-4 bg-surface-container-lowest rounded-lg border border-outline-variant/10">
+<div class="grid grid-cols-2 gap-4">
+<div>
+<p class="text-[10px] font-label uppercase text-outline-variant mb-1">Operational Cost</p>
+<p id="resp-cost" class="text-xl font-headline font-bold text-on-surface">$5.00</p>
+</div>
+<div>
+<p class="text-[10px] font-label uppercase text-outline-variant mb-1">Yield Delta</p>
+<p id="resp-reward" class="text-xl font-headline font-bold text-secondary">+2.5%</p>
+</div>
+</div>
+</div>
+<div class="space-y-2">
+<p class="text-[10px] font-label uppercase text-outline-variant tracking-widest">Telemetry Output</p>
+<div id="telemetry" class="bg-black/20 rounded p-3 font-mono text-[10px] text-primary/80 border border-primary/10 min-h-[64px]">
+&gt; irr_pulse_target_09: init<br/>
+&gt; valve_opening: 32%<br/>
+&gt; soil_moisture_inc: 0.12%<br/>
+&gt; task_complete: code_0
+</div>
+</div>
+</div>
+</div>
+<!-- Health Orbs / Section Health -->
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-low p-4 rounded-xl border border-outline-variant/10 flex flex-col items-center text-center">
+<div class="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center mb-2 shadow-[0_0_15px_rgba(77,224,130,0.2)]">
+<div id="orb-a" class="w-6 h-6 rounded-full bg-secondary animate-pulse shadow-[0_0_10px_#4de082]"></div>
+</div>
+<span class="text-[10px] font-label uppercase text-outline-variant mb-1">Sector A</span>
+<span id="orb-a-label" class="text-xs font-headline font-bold text-on-surface">HEALTH GOOD</span>
+</div>
+<div class="bg-surface-container-low p-4 rounded-xl border border-outline-variant/10 flex flex-col items-center text-center">
+<div class="w-12 h-12 rounded-full bg-tertiary/10 flex items-center justify-center mb-2 shadow-[0_0_15px_rgba(249,189,34,0.2)]">
+<div id="orb-b" class="w-6 h-6 rounded-full bg-tertiary shadow-[0_0_10px_#f9bd22]"></div>
+</div>
+<span class="text-[10px] font-label uppercase text-outline-variant mb-1">Sector B</span>
+<span id="orb-b-label" class="text-xs font-headline font-bold text-on-surface">HEALTH WARN</span>
+</div>
+</div>
+<!-- Operational HUD image -->
+<div class="rounded-xl overflow-hidden h-40 border border-outline-variant/15 relative">
+<img alt="futuristic agricultural data display" class="w-full h-full object-cover grayscale brightness-50 contrast-125" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwNSf2bbxIeymYanDSSX4qN8sMKUx-6GeRI5H3hWyXvqLHAIGdSppPYD55cwCwSqZ4ZJcHTfzeXX47dd2VkZ45bYqNNRFkVpQgnn8kznR-kgpWxBDoGzlCMkz-lTUAr50unCUNxkGRWh1BwWqc6Zc6m-2VQJSbLpAGBzc5t1wCdvCn4FvURM0_wdR1cQPk3twqluVzYouFgHNLGTYtrEENfQQifjKpYOiDj5q0Yfh7unlBzWHxGzh_X-w65b_oFGjCeZL1QztZ8vE"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-low to-transparent"></div>
+<div class="absolute bottom-4 left-4">
+<p class="text-[10px] font-label uppercase text-primary tracking-widest">Live Drone Feed</p>
+<p id="drone-station" class="text-xs font-body text-white font-medium">Station: Alpha-01</p>
+</div>
+</div>
+</aside>
+</main>
+<!-- BottomNavBar (Mobile only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 h-20 bg-[#161b22]/80 backdrop-blur-2xl border-t border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] rounded-t-2xl">
+<a href="/ui/" class="flex flex-col items-center justify-center text-slate-500 hover:text-blue-300 transition-all">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-headline text-[10px] uppercase tracking-widest mt-1">Dashboard</span>
+</a>
+<div class="flex flex-col items-center justify-center text-blue-400 bg-blue-500/10 rounded-xl px-4 py-1 active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="settings_remote">settings_remote</span>
+<span class="font-headline text-[10px] uppercase tracking-widest mt-1">Control</span>
+</div>
+<a href="/ui/demo.html" class="flex flex-col items-center justify-center text-slate-500 hover:text-blue-300 transition-all">
+<span class="material-symbols-outlined" data-icon="play_circle">play_circle</span>
+<span class="font-headline text-[10px] uppercase tracking-widest mt-1">Demo</span>
+</a>
+<div class="flex flex-col items-center justify-center text-slate-500 hover:text-blue-300 transition-all">
+<span class="material-symbols-outlined" data-icon="Bar_chart">bar_chart</span>
+<span class="font-headline text-[10px] uppercase tracking-widest mt-1">Yield</span>
+</div>
+</nav>
+
+<!-- ═══════════════════════ LIVE API INTEGRATION ═══════════════════════ -->
+<script>
+const API = 'http://localhost:8000';
+let taskId = 'task_2_medium';
+let obs    = null;
+
+/* ── Helpers ──────────────────────────────────── */
+async function apiFetch(path, opts = {}) {
+  const r = await fetch(API + path, { headers: { 'Content-Type': 'application/json' }, ...opts });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+function tel(lines) {
+  document.getElementById('telemetry').innerHTML = lines.map(l => `&gt; ${l}`).join('<br/>');
+}
+
+/* ── Zone slider → highlight tile ─────────────── */
+function updateZoneDisplay(v) {
+  const z = parseInt(v);
+  document.getElementById('zone-display').textContent = String(z).padStart(2,'0');
+  highlightTile(z);
+}
+function updateFlowDisplay(v) {
+  document.getElementById('flow-display').textContent = v + ' L/m';
+}
+function highlightTile(zone) {
+  document.querySelectorAll('.iso-tile').forEach((t,i) => {
+    if (i === zone) {
+      t.classList.add('selected');
+      t.style.borderWidth = '2px';
+      t.style.borderColor = 'rgba(162,201,255,0.8)';
+    } else {
+      t.classList.remove('selected');
+      t.style.borderWidth = '';
+      t.style.borderColor = '';
+    }
+  });
+}
+
+/* ── Task selector ────────────────────────────── */
+function setTask(id, btn) {
+  taskId = id;
+  document.querySelectorAll('.task-btn').forEach(b => {
+    b.className = 'task-btn bg-surface-container-high text-on-surface-variant p-2 rounded-xl text-xs font-headline uppercase hover:bg-surface-container-highest transition-all';
+  });
+  if (btn) btn.className = 'task-btn bg-primary/20 text-primary border border-primary/30 p-2 rounded-xl text-xs font-headline uppercase transition-all';
+  resetSim();
+}
+
+/* ── Reset ────────────────────────────────────── */
+async function resetSim() {
+  try {
+    const d = await apiFetch('/reset', { method: 'POST', body: JSON.stringify({ task_id: taskId }) });
+    obs = d.obs ?? d.observation ?? d;
+    renderGrid(obs?.zones || []);
+    updateResources(obs);
+    updateOrbs(obs?.zones || []);
+    tel([
+      `env_reset: ${taskId}`,
+      `zones: ${(obs?.zones||[]).length}`,
+      `budget: $${Math.round(obs?.budget ?? 1000)}`,
+      `status: READY`
+    ]);
+    setStatus('READY', 'text-primary', 'info');
+    document.getElementById('api-badge').textContent = 'OPERATIONAL';
+    document.getElementById('api-badge').className = 'font-headline tracking-wider uppercase text-xs px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded-full';
+  } catch(e) {
+    tel([`reset_error: ${e.message.slice(0,60)}`]);
+    setStatus('OFFLINE', 'text-error', 'error');
+    document.getElementById('api-badge').textContent = 'OFFLINE';
+    document.getElementById('api-badge').className = 'font-headline tracking-wider uppercase text-xs px-3 py-1 bg-error/10 text-error border border-error/20 rounded-full';
+  }
+}
+
+/* ── Submit manual action ─────────────────────── */
+async function submitAction() {
+  const actionMap = {
+    irrigate: 'irrigate', fertilize: 'fertilize',
+    harvest:  'harvest',  pesticide: 'pesticide', wait: 'wait'
+  };
+  const actionType = actionMap[document.getElementById('action-type').value] ?? 'wait';
+  const zone   = parseInt(document.getElementById('zone-slider').value);
+  const amount = parseInt(document.getElementById('flow-slider').value);
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+
+  const body = { task_id: taskId, action_type: actionType, zone, amount, days: 1 };
+  try {
+    const d = await apiFetch('/step', { method: 'POST', body: JSON.stringify(body) });
+    obs = d.obs ?? d.observation ?? obs;
+    const stepR = typeof d.reward === 'object' ? (d.reward?.step_reward ?? 0) : +(d.reward ?? 0);
+    const cumR  = typeof d.reward === 'object' ? (d.reward?.episode_reward ?? 0) : stepR;
+
+    renderGrid(obs?.zones || []);
+    updateResources(obs);
+    updateOrbs(obs?.zones || []);
+
+    document.getElementById('resp-cost').textContent  = `$${(amount * 0.15).toFixed(2)}`;
+    document.getElementById('resp-reward').textContent = (stepR >= 0 ? '+' : '') + (stepR * 100).toFixed(1) + '%';
+    document.getElementById('resp-reward').className   = `text-xl font-headline font-bold ${stepR >= 0 ? 'text-secondary' : 'text-error'}`;
+
+    setStatus(d.done ? 'EPISODE DONE' : 'SUCCESS', d.done ? 'text-tertiary' : 'text-[#22C55E]', 'check_circle');
+
+    tel([
+      `${actionType}_target_${String(zone).padStart(2,'0')}: init`,
+      `amount: ${amount}_units`,
+      `step_reward: ${stepR.toFixed(4)}`,
+      `cumul_reward: ${cumR.toFixed(4)}`,
+      `day: ${obs?.day ?? '?'}`,
+      `task_complete: ${d.done ? 'DONE' : 'code_0'}`
+    ]);
+
+    if (d.done) {
+      document.getElementById('api-badge').textContent = 'EPISODE END';
+      document.getElementById('api-badge').className = 'font-headline tracking-wider uppercase text-xs px-3 py-1 bg-tertiary/10 text-tertiary border border-tertiary/20 rounded-full';
+    }
+  } catch(e) {
+    setStatus('ERROR', 'text-error', 'error');
+    tel([`action_error: ${e.message.slice(0,60)}`]);
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Submit Action';
+}
+
+function setStatus(label, colorClass, icon) {
+  document.getElementById('resp-status').className = `text-xs font-headline font-bold ${colorClass} flex items-center gap-1 result-flash`;
+  document.getElementById('resp-status').innerHTML = `<span class="material-symbols-outlined text-[14px]">${icon}</span> ${label}`;
+}
+
+/* ── Live grid render ─────────────────────────── */
+function renderGrid(zones) {
+  if (!zones || !zones.length) return;
+  const grid  = document.getElementById('farm-grid');
+  const selZ  = parseInt(document.getElementById('zone-slider').value);
+  grid.innerHTML = zones.map((z, i) => {
+    const health  = z.health ?? z.crop_health ?? 1;
+    const pest    = z.pest_risk ?? 0;
+    const stage   = z.growth_stage ?? 0;
+    const harv    = z.is_harvested ?? false;
+    const ready   = stage === 4 && !harv;
+    const isSelected = i === selZ;
+
+    // Color overlay based on state
+    const overlayColor = harv   ? 'rgba(255,255,255,0.05)'
+                       : ready  ? '#FBBF24'
+                       : health > 0.6 ? '#4ADE80'
+                       : health > 0.35 ? '#f9bd22'
+                       : '#ffb4ab';
+    const overlayOpacity = harv ? 0.05 : Math.max(0.1, Math.min(0.9, health));
+    const border = isSelected
+      ? 'border-2 border-primary shadow-[0_0_20px_rgba(162,201,255,0.4)]'
+      : pest > 0.5 ? 'border border-error/40'
+      : 'border border-white/5';
+    const pestDots = pest > 0.4 ? `<div class="absolute bottom-1 right-1 flex gap-0.5">${'<div class="w-1 h-1 bg-red-400 rounded-full animate-pulse"></div>'.repeat(Math.min(2,Math.ceil(pest*2)))}</div>` : '';
+    const locationPin = isSelected ? `<div class="absolute inset-0 bg-primary/20 flex items-center justify-center"><span class="material-symbols-outlined text-white animate-bounce" style="font-variation-settings:'FILL' 1;font-size:18px">location_on</span></div>` : '';
+
+    return `
+      <div class="iso-tile w-full aspect-square bg-[#2D1B0E] rounded-md ${border} relative overflow-hidden group" onclick="selectTile(${i})">
+        <div class="absolute inset-0" style="background:${overlayColor};opacity:${overlayOpacity}"></div>
+        <span class="absolute top-1 left-1 text-[8px] font-headline text-white/40">${String(i).padStart(2,'0')}</span>
+        ${ready ? '<span class="absolute bottom-1 right-1 text-[7px] font-headline text-yellow-300 font-bold">READY</span>' : ''}
+        ${pestDots}
+        ${locationPin}
+      </div>`;
+  }).join('');
+}
+
+function selectTile(i) {
+  document.getElementById('zone-slider').value = i;
+  updateZoneDisplay(i);
+}
+
+/* ── Resource bars ─────────────────────────────── */
+function updateResources(o) {
+  if (!o) return;
+  const budget    = o.budget ?? o.budget_left ?? 1000;
+  const budgetPct = Math.min(100, Math.round((budget / 1000) * 100));
+  document.getElementById('res-budget').style.width = budgetPct + '%';
+  const zones  = o.zones || [];
+  const avgMoist = zones.length ? zones.reduce((s,z)=>s+(z.soil_moisture??0.5),0)/zones.length : 0.72;
+  document.getElementById('res-water').style.width = Math.round(avgMoist*100)+'%';
+  document.getElementById('drone-station').textContent = `Day: ${o.day ?? 1} — Station: Alpha-01`;
+}
+
+/* ── Health orbs ───────────────────────────────── */
+function updateOrbs(zones) {
+  if (!zones.length) return;
+  const mid = Math.floor(zones.length / 2);
+  const hA  = zones.slice(0, mid).reduce((s,z)=>s+(z.health??z.crop_health??0),0)/mid;
+  const hB  = zones.slice(mid).reduce((s,z)=>s+(z.health??z.crop_health??0),0)/(zones.length-mid);
+  const orbA = document.getElementById('orb-a');
+  const orbB = document.getElementById('orb-b');
+  if (hA > 0.6) { orbA.style.background='#4de082'; orbA.style.boxShadow='0 0 10px #4de082'; document.getElementById('orb-a-label').textContent='HEALTH GOOD'; }
+  else if (hA > 0.35) { orbA.style.background='#f9bd22'; orbA.style.boxShadow='0 0 10px #f9bd22'; document.getElementById('orb-a-label').textContent='HEALTH WARN'; }
+  else { orbA.style.background='#ffb4ab'; orbA.style.boxShadow='0 0 10px #ffb4ab'; document.getElementById('orb-a-label').textContent='HEALTH CRIT'; }
+  if (hB > 0.6) { orbB.style.background='#4de082'; orbB.style.boxShadow='0 0 10px #4de082'; document.getElementById('orb-b-label').textContent='HEALTH GOOD'; }
+  else if (hB > 0.35) { orbB.style.background='#f9bd22'; orbB.style.boxShadow='0 0 10px #f9bd22'; document.getElementById('orb-b-label').textContent='HEALTH WARN'; }
+  else { orbB.style.background='#ffb4ab'; orbB.style.boxShadow='0 0 10px #ffb4ab'; document.getElementById('orb-b-label').textContent='HEALTH CRIT'; }
+}
+
+/* ── Init ─────────────────────────────────────── */
+updateZoneDisplay(9);
+updateFlowDisplay(32);
+resetSim();
+</script>
+</body></html>

@@ -1,0 +1,59 @@
+{
+  "task_id": "task_3_hard",
+  "name": "Crisis Season \u2014 Multi-Objective Optimization",
+  "description": "Manage a full 16-zone farm across a brutal 90-day crisis season. Simultaneous drought, pest outbreak spreading across zones, market price crash after day 45, and a tight budget. Agent must balance profit, pest containment, and sustainability \u2014 all at once.",
+  "difficulty": "hard",
+  "episode_days": 90,
+  "num_zones": 16,
+  "crops": ["wheat", "corn", "soy"],
+  "scenario": "crisis",
+  "budget": 1000.0,
+  "water_budget": 500.0,
+  "seed": 42,
+  "target_score_min": 0.2,
+  "target_score_max": 0.5,
+  "action_schema": {
+    "action_type": "string \u2014 one of: irrigate, fertilize, pesticide, harvest, wait, sell",
+    "zone": "int \u2014 zone index (0-based)",
+    "amount": "float \u2014 water litres for irrigate, tons for sell",
+    "type": "string \u2014 fertilizer type: nitrogen | phosphorus | potassium",
+    "days": "int \u2014 number of days to wait",
+    "market": "string \u2014 local | export",
+    "crop": "string \u2014 wheat | corn | soy"
+  },
+  "observation_space": {
+    "day": "int \u2014 current day (1 to 90)",
+    "season_phase": "string \u2014 planting | growing | harvest",
+    "budget_left": "float",
+    "market_prices": "dict \u2014 prices crash ~30% after day 45",
+    "weather": {
+      "event": "string",
+      "rainfall_mm": "float",
+      "temperature": "float",
+      "humidity": "float",
+      "frost": "bool",
+      "rain_probability": "float"
+    },
+    "zones": "list[ZoneObservation] \u2014 16 zones across 4x4 grid",
+    "history": "list \u2014 last 5 days"
+  },
+  "grader": {
+    "profit_weight": 0.50,
+    "pest_control_weight": 0.30,
+    "sustainability_weight": 0.20,
+    "description": "Composite score: net profit vs max, pest containment, budget and water sustainability"
+  },
+  "unique_mechanics": {
+    "zone_interdependency": "Pest spreads 30% into adjacent zones daily if untreated",
+    "water_runoff": "Over-irrigated zones (moisture > 0.85) spill into neighbors",
+    "neighbor_stress": "Failed zones (health < 0.1) stress adjacent zones by +0.05/day",
+    "market_crash": "Prices drop ~30% after day 45 in crisis scenario",
+    "delayed_rewards": "Poor irrigation on day 15 shows as crop loss on day 45"
+  },
+  "success_criteria": [
+    "Contain pest outbreak before it spreads to more than 8 zones",
+    "Generate net profit above $200 despite market crash",
+    "Keep budget above $0 for the full 90 days",
+    "Harvest at least 8 of 16 zones before season ends"
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "task_1_easy": {
+    "task_id": "task_1_easy",
+    "policy": "greedy",
+    "seed": 42,
+    "total_steps": 29,
+    "final_score": 0.4974,
+    "episode_reward": 10.4756,
+    "grader_result": {
+      "task_id": "task_1_easy",
+      "final_score": 0.4974,
+      "yield_score": 1.0,
+      "timing_score": 0.0,
+      "efficiency_score": 0.0,
+      "breakdown": {
+        "total_revenue": 696.37,
+        "water_used": 0.0,
+        "harvest_count": 0,
+        "zones_failed": 0
+      }
+    },
+    "elapsed_seconds": 0.4
+  },
+  "task_2_medium": {
+    "task_id": "task_2_medium",
+    "policy": "greedy",
+    "seed": 42,
+    "total_steps": 59,
+    "final_score": 1.0,
+    "episode_reward": 20.1143,
+    "grader_result": {
+      "task_id": "task_2_medium",
+      "final_score": 1.0,
+      "survival_score": 1.0,
+      "water_score": 1.0,
+      "yield_score": 1.0,
+      "pest_score": 1.0,
+      "breakdown": {
+        "zones_survived": 4,
+        "zones_failed": 0,
+        "water_used": 70.0,
+        "water_budget": 300.0,
+        "total_revenue": 1234.7399999999998
+      }
+    },
+    "elapsed_seconds": 0.01
+  },
+  "task_3_hard": {
+    "task_id": "task_3_hard",
+    "policy": "greedy",
+    "seed": 42,
+    "total_steps": 89,
+    "final_score": 0.6543,
+    "episode_reward": 26.3997,
+    "grader_result": {
+      "task_id": "task_3_hard",
+      "final_score": 0.6543,
+      "profit_score": 0.3087,
+      "pest_control_score": 1.0,
+      "sustainability_score": 1.0,
+      "breakdown": {
+        "total_revenue": 864.42,
+        "max_possible_revenue": 5600.0,
+        "pest_contained": true,
+        "budget_end": 1832.42,
+        "zones_failed": 0,
+        "sell_events": 6
+      }
+    },
+    "elapsed_seconds": 0.03
+  }
+}

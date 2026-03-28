@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AgroNexus | Judge Demo Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "on-primary-fixed-variant": "#004882",
+                "inverse-surface": "#dfe2eb",
+                "secondary-fixed": "#6dfe9c",
+                "on-secondary-fixed": "#00210c",
+                "primary-fixed-dim": "#a2c9ff",
+                "tertiary": "#f9bd22",
+                "surface-container-highest": "#31353c",
+                "outline": "#8b919d",
+                "error-container": "#93000a",
+                "tertiary-fixed-dim": "#f9bd22",
+                "surface-variant": "#31353c",
+                "on-primary": "#00315c",
+                "on-secondary-fixed-variant": "#005227",
+                "inverse-on-surface": "#2d3137",
+                "background": "#10141a",
+                "primary-container": "#58a6ff",
+                "outline-variant": "#414752",
+                "on-secondary": "#003919",
+                "on-surface-variant": "#c0c7d4",
+                "on-secondary-container": "#003e1c",
+                "primary": "#a2c9ff",
+                "on-primary-container": "#003a6b",
+                "on-primary-fixed": "#001c38",
+                "surface-dim": "#10141a",
+                "on-tertiary-fixed-variant": "#5c4300",
+                "surface-container-high": "#262a31",
+                "secondary-container": "#00b55d",
+                "secondary": "#4de082",
+                "surface": "#10141a",
+                "on-surface": "#dfe2eb",
+                "tertiary-container": "#cf9b00",
+                "on-tertiary-container": "#4b3600",
+                "primary-fixed": "#d3e4ff",
+                "surface-tint": "#a2c9ff",
+                "on-error": "#690005",
+                "tertiary-fixed": "#ffdf9f",
+                "on-error-container": "#ffdad6",
+                "secondary-fixed-dim": "#4de082",
+                "on-tertiary-fixed": "#261a00",
+                "surface-bright": "#353940",
+                "on-tertiary": "#402d00",
+                "inverse-primary": "#0060aa",
+                "surface-container-low": "#181c22",
+                "error": "#ffb4ab",
+                "surface-container-lowest": "#0a0e14",
+                "on-background": "#dfe2eb",
+                "surface-container": "#1c2026"
+              },
+              fontFamily: {
+                "headline": ["Space Grotesk"],
+                "body": ["Inter"],
+                "label": ["Space Grotesk"]
+              },
+              borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .nav-item { font-family: 'Space Grotesk', sans-serif; }
+        .glow-score { text-shadow: 0 0 20px rgba(74, 222, 128, 0.4); }
+        .glow-blue { text-shadow: 0 0 20px rgba(88, 166, 255, 0.3); }
+        .glass-panel { backdrop-filter: blur(12px); }
+        /* Progress bar animation for running state */
+        @keyframes progbar { from { transform:translateX(-60%) scaleX(.4); } to { transform:translateX(60%) scaleX(.4); } }
+        .pipe-running { animation: progbar 1.2s ease-in-out infinite alternate; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[#0a0e14] text-on-surface selection:bg-secondary/30">
+<!-- TopAppBar -->
+<header class="bg-[#10141a] dark:bg-[#10141a] border-b border-[#414752]/15 shadow-[0_0_40px_rgba(88,166,255,0.05)] fixed top-0 z-50 flex justify-between items-center w-full px-6 py-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#58A6FF]" data-icon="sensors">sensors</span>
+<span class="text-2xl font-bold tracking-widest text-[#58A6FF] font-['Space_Grotesk'] uppercase tracking-tighter">AGRONEXUS</span>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-[#dfe2eb] opacity-70 font-['Space_Grotesk'] uppercase tracking-tighter text-sm hover:text-[#58A6FF] transition-all" href="/ui/">Dashboard</a>
+<a class="text-[#dfe2eb] opacity-70 font-['Space_Grotesk'] uppercase tracking-tighter text-sm hover:text-[#58A6FF] transition-all" href="/ui/control.html">Control</a>
+<a class="text-[#58A6FF] border-b-2 border-[#58A6FF] pb-1 font-['Space_Grotesk'] uppercase tracking-tighter text-sm" href="#">Demo</a>
+</nav>
+<div class="flex items-center gap-4">
+<div class="h-8 w-8 bg-surface-container-high flex items-center justify-center border border-outline-variant/20">
+<!-- API status replaces notification icon area -->
+<span id="api-dot" class="w-2 h-2 rounded-full bg-gray-500"></span>
+</div>
+<div class="h-10 w-10 overflow-hidden border border-primary/30">
+<img alt="Operator Profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYsyJOqEIVdC-Loi3UbG6cZ83pZvSbiVzCRtbUNbTw6MFvLOKGlF0YZ7PMfdBl21L1wIITp2xqiuolqdGSp0tHQ_ngJ2DRCbQDHcHz4mWJHdVIO6TXNWwFWapRtaXgdl66pa5mhwSL1ILgFOUZJyT5QwEmskEiBBLwYS89grMS7eRb94nxWM_hGrv5pu4ACPQMGb8pfmcpsi2nbj7YvpDGFsNXgthVFMpystM3XphUWyTCZ71lckWVomu3zJML6QJx_fWz8fJOgRU"/>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-20 px-6 max-w-7xl mx-auto min-h-screen">
+<!-- Hero Header -->
+<section class="mb-12 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-64 h-64 bg-secondary/5 rounded-full blur-[100px]"></div>
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 border-l-4 border-secondary pl-6">
+<div>
+<p class="text-secondary font-['Space_Grotesk'] font-bold text-xs tracking-[0.3em] uppercase mb-2">System Diagnostic</p>
+<h1 class="text-4xl md:text-6xl font-black text-on-surface tracking-tighter uppercase font-['Space_Grotesk']">
+                        JUDGE DEMO: <span class="text-secondary">BASELINE</span> PERFORMANCE
+                    </h1>
+</div>
+<div class="flex items-center gap-4 text-sm font-mono opacity-60">
+<span class="flex items-center gap-1"><span id="agent-dot" class="w-2 h-2 bg-secondary animate-pulse"></span> <span id="agent-status">AGENT ACTIVE</span></span>
+<span>v4.0.2-ALPHA</span>
+</div>
+</div>
+</section>
+<!-- Comparison Cards Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+<!-- EASY CARD -->
+<div class="bg-[#161B22] border border-[#30363D] p-8 relative group hover:bg-[#1c222b] transition-all">
+<div class="absolute top-0 right-0 p-4 font-mono text-[10px] text-secondary opacity-40">ENV_01 / L0</div>
+<h3 class="text-[#dfe2eb] font-['Space_Grotesk'] text-sm uppercase tracking-widest mb-8 flex items-center gap-2">
+<span class="material-symbols-outlined text-xs" data-icon="eco">eco</span>
+                    Task Tier: EASY
+                </h3>
+<div class="mb-10">
+<!-- Score: shows Stitch static until API run -->
+<div id="score-easy" class="text-[80px] font-black text-secondary leading-none tracking-tighter glow-score font-['Space_Grotesk']">0.82</div>
+<p class="text-[#8b919d] text-xs uppercase font-bold tracking-widest mt-2">Aggregate Confidence Score</p>
+</div>
+<!-- Static Stitch sub-scores (replaced by live data after run) -->
+<div id="subs-easy" class="space-y-6">
+<div class="flex justify-between items-end border-b border-[#30363D] pb-2">
+<span class="text-xs text-[#8b919d] uppercase">Yield Projection</span>
+<span class="text-xl font-bold text-[#dfe2eb]">0.91</span>
+</div>
+<div class="flex justify-between items-end border-b border-[#30363D] pb-2">
+<span class="text-xs text-[#8b919d] uppercase">Timing Accuracy</span>
+<span class="text-xl font-bold text-[#dfe2eb]">0.80</span>
+</div>
+<div class="flex justify-between items-end border-b border-[#30363D] pb-2">
+<span class="text-xs text-[#8b919d] uppercase">Effic. Rating</span>
+<span class="text-xl font-bold text-[#dfe2eb]">0.74</span>
+</div>
+</div>
+<!-- Progress bar -->
+<div class="mt-8 h-1 bg-secondary/10 overflow-hidden">
+<div id="bar-easy" class="h-full bg-secondary" style="width:82%"></div>
+</div>
+<!-- Running indicator (hidden by default) -->
+<div id="running-easy" class="hidden mt-2 text-[9px] font-mono text-secondary animate-pulse">SIMULATING...</div>
+<div id="elapsed-easy" class="mt-2 text-[9px] font-mono text-[#8b919d]"></div>
+</div>
+<!-- MEDIUM CARD -->
+<div class="bg-[#161B22] border border-[#30363D] p-8 relative group hover:bg-[#1c222b] transition-all">
+<div class="absolute top-0 right-0 p-4 font-mono text-[10px] text-tertiary opacity-40">ENV_02 / L1</div>
+<h3 class="text-[#dfe2eb] font-['Space_Grotesk'] text-sm uppercase tracking-widest mb-8 flex items-center gap-2">
+<span class="material-symbols-outlined text-xs" data-icon="water_drop">water_drop</span>
+                    Task Tier: MEDIUM
+                </h3>
+<div class="mb-10">
+<div id="score-medium" class="text-[80px] font-black text-tertiary leading-none tracking-tighter glow-score font-['Space_Grotesk']">0.54</div>
+<p class="text-[#8b919d] text-xs uppercase font-bold tracking-widest mt-2">Aggregate Confidence Score</p>
+</div>
+<div id="subs-medium" class="space-y-6">
+<div class="flex justify-between items-end border-b border-[#30363D] pb-2">
+<span class="text-xs text-[#8b919d] uppercase">Survival Rate</span>
+<span class="text-xl font-bold text-[#dfe2eb]">0.75</span>
+</div>
+<div class="flex justify-between items-end border-b border-[#30363D] pb-2">
+<span class="text-xs text-[#8b919d] uppercase">Water Optimization</span>
+<span class="text-xl font-bold text-[#dfe2eb]">0.60</span>
+</div>
+<div class="flex justify-between items-end border-b border-[#30363D] pb-2">
+<span class="text-xs text-[#8b919d] uppercase">Yield Margin</span>
+<span class="text-xl font-bold text-[#dfe2eb]">0.40</span>
+</div>
+</div>
+<div class="mt-8 h-1 bg-tertiary/10 overflow-hidden">
+<div id="bar-medium" class="h-full bg-tertiary" style="width:54%"></div>
+</div>
+<div id="running-medium" class="hidden mt-2 text-[9px] font-mono text-tertiary animate-pulse">SIMULATING...</div>
+<div id="elapsed-medium" class="mt-2 text-[9px] font-mono text-[#8b919d]"></div>
+</div>
+<!-- HARD CARD -->
+<div class="bg-[#161B22] border border-[#30363D] p-8 relative group hover:bg-[#1c222b] transition-all">
+<div class="absolute top-0 right-0 p-4 font-mono text-[10px] text-error opacity-40">ENV_03 / L2</div>
+<h3 class="text-[#dfe2eb] font-['Space_Grotesk'] text-sm uppercase tracking-widest mb-8 flex items-center gap-2">
+<span class="material-symbols-outlined text-xs" data-icon="warning">warning</span>
+                    Task Tier: HARD
+                </h3>
+<div class="mb-10">
+<div id="score-hard" class="text-[80px] font-black text-error leading-none tracking-tighter glow-score font-['Space_Grotesk']">0.31</div>
+<p class="text-[#8b919d] text-xs uppercase font-bold tracking-widest mt-2">Aggregate Confidence Score</p>
+</div>
+<div id="subs-hard" class="space-y-6">
+<div class="flex justify-between items-end border-b border-[#30363D] pb-2">
+<span class="text-xs text-[#8b919d] uppercase">Profit Index</span>
+<span class="text-xl font-bold text-[#dfe2eb]">0.38</span>
+</div>
+<div class="flex justify-between items-end border-b border-[#30363D] pb-2">
+<span class="text-xs text-[#8b919d] uppercase">Pest Mitigation</span>
+<span class="text-xl font-bold text-[#dfe2eb]">0.42</span>
+</div>
+<div class="flex justify-between items-end border-b border-[#30363D] pb-2">
+<span class="text-xs text-[#8b919d] uppercase">Sustain Ratio</span>
+<span class="text-xl font-bold text-[#dfe2eb]">0.28</span>
+</div>
+</div>
+<div class="mt-8 h-1 bg-error/10 overflow-hidden">
+<div id="bar-hard" class="h-full bg-error" style="width:31%"></div>
+</div>
+<div id="running-hard" class="hidden mt-2 text-[9px] font-mono text-error animate-pulse">SIMULATING...</div>
+<div id="elapsed-hard" class="mt-2 text-[9px] font-mono text-[#8b919d]"></div>
+</div>
+</section>
+<!-- CTA Section -->
+<section class="flex flex-col items-center justify-center mb-16 py-12 bg-surface-container-lowest border border-[#30363D]">
+<button id="run-btn" onclick="runBaseline()" class="bg-secondary text-on-secondary-fixed font-black text-xl px-12 py-5 uppercase tracking-tighter hover:bg-[#6dfe9c] transition-all active:scale-95 flex items-center gap-4 group">
+                RUN BASELINE ASSESSMENT
+                <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform" data-icon="play_arrow">play_arrow</span>
+</button>
+<p class="mt-4 text-[#8b919d] text-[10px] uppercase tracking-[0.4em] font-['Space_Grotesk']">Greedy Policy · Seed 42 · All 3 Tasks</p>
+<p id="err-msg" class="hidden mt-3 text-error text-[10px] font-mono"></p>
+</section>
+<!-- Progress Section -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-5xl mx-auto">
+<!-- EASY PIPELINE -->
+<div class="space-y-2">
+<div class="flex justify-between text-[10px] font-['Space_Grotesk'] font-bold text-[#dfe2eb] uppercase tracking-widest">
+<span>Easy Task Pipeline</span>
+<span id="pipe-easy-time" class="text-secondary">0.87s</span>
+</div>
+<div class="h-1 bg-[#1c2026] overflow-hidden">
+<div id="pipe-easy-fill" class="h-full bg-secondary" style="width:100%"></div>
+</div>
+<div class="flex items-center gap-2">
+<span id="pipe-easy-icon" class="material-symbols-outlined text-[10px] text-secondary" data-icon="check_circle">check_circle</span>
+<span id="pipe-easy-status" class="text-[9px] text-[#8b919d] font-mono">STABLE - COMPLETE</span>
+</div>
+</div>
+<!-- MEDIUM PIPELINE -->
+<div class="space-y-2">
+<div class="flex justify-between text-[10px] font-['Space_Grotesk'] font-bold text-[#dfe2eb] uppercase tracking-widest">
+<span>Medium Task Pipeline</span>
+<span id="pipe-medium-time" class="text-secondary animate-pulse">0.01s</span>
+</div>
+<div class="h-1 bg-[#1c2026] overflow-hidden">
+<div id="pipe-medium-fill" class="h-full bg-secondary" style="width:20%"></div>
+</div>
+<div class="flex items-center gap-2">
+<span id="pipe-medium-icon" class="material-symbols-outlined text-[10px] text-[#dfe2eb]/30" data-icon="sync">sync</span>
+<span id="pipe-medium-status" class="text-[9px] text-[#8b919d] font-mono">CALCULATING_MATRIX</span>
+</div>
+</div>
+<!-- HARD PIPELINE -->
+<div class="space-y-2">
+<div class="flex justify-between text-[10px] font-['Space_Grotesk'] font-bold text-[#dfe2eb] uppercase tracking-widest">
+<span>Hard Task Pipeline</span>
+<span id="pipe-hard-time" class="text-[#8b919d]">0.03s</span>
+</div>
+<div class="h-1 bg-[#1c2026] overflow-hidden">
+<div id="pipe-hard-fill" class="h-full bg-secondary" style="width:5%"></div>
+</div>
+<div class="flex items-center gap-2">
+<span id="pipe-hard-icon" class="material-symbols-outlined text-[10px] text-[#dfe2eb]/30" data-icon="hourglass_empty">hourglass_empty</span>
+<span id="pipe-hard-status" class="text-[9px] text-[#8b919d] font-mono">QUEUED</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Navigation Shell Support (BottomNavBar for Mobile) -->
+<div class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center h-16 pb-safe bg-[#0a0e14]/80 backdrop-blur-xl border-t border-[#414752]/15 z-50">
+<a href="/ui/" class="flex flex-col items-center justify-center text-[#dfe2eb]/50 py-2">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-['Space_Grotesk'] text-[10px] uppercase font-bold">Dashboard</span>
+</a>
+<a href="/ui/control.html" class="flex flex-col items-center justify-center text-[#dfe2eb]/50 py-2">
+<span class="material-symbols-outlined" data-icon="settings_input_component">settings_input_component</span>
+<span class="font-['Space_Grotesk'] text-[10px] uppercase font-bold">Control</span>
+</a>
+<div class="flex flex-col items-center justify-center text-[#58A6FF] bg-[#58A6FF]/10 py-2 px-4">
+<span class="material-symbols-outlined" data-icon="Table_Chart">table_chart</span>
+<span class="font-['Space_Grotesk'] text-[10px] uppercase font-bold">Demo</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#dfe2eb]/50 py-2">
+<span class="material-symbols-outlined" data-icon="agriculture">agriculture</span>
+<span class="font-['Space_Grotesk'] text-[10px] uppercase font-bold">Yield</span>
+</div>
+</div>
+<!-- Background Elements -->
+<div class="fixed inset-0 pointer-events-none z-[-1] opacity-20">
+<div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,_#1c2026_0%,_transparent_70%)]"></div>
+<div class="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px]"></div>
+</div>
+
+<!-- ══════════════════════ LIVE API INTEGRATION ══════════════════════ -->
+<script>
+const API = 'http://localhost:8000';
+
+/* ── helpers ──────────────────────────────────── */
+async function apiFetch(path, opts = {}) {
+  const r = await fetch(API + path, { headers: { 'Content-Type': 'application/json' }, ...opts });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+/* ── API status dot ───────────────────────────── */
+async function checkStatus() {
+  try {
+    await apiFetch('/');
+    document.getElementById('api-dot').className = 'w-2 h-2 rounded-full bg-green-400';
+  } catch {
+    document.getElementById('api-dot').className = 'w-2 h-2 rounded-full bg-red-400';
+  }
+}
+
+/* ── Pipeline state helpers ───────────────────── */
+const PIPE = {
+  easy:   { fill:'pipe-easy-fill',   time:'pipe-easy-time',   icon:'pipe-easy-icon',   status:'pipe-easy-status',   score:'score-easy',   bar:'bar-easy',   subs:'subs-easy',   running:'running-easy',   elapsed:'elapsed-easy',   color:'bg-secondary',  textColor:'text-secondary'  },
+  medium: { fill:'pipe-medium-fill', time:'pipe-medium-time', icon:'pipe-medium-icon', status:'pipe-medium-status', score:'score-medium', bar:'bar-medium', subs:'subs-medium', running:'running-medium', elapsed:'elapsed-medium', color:'bg-tertiary',   textColor:'text-tertiary'   },
+  hard:   { fill:'pipe-hard-fill',   time:'pipe-hard-time',   icon:'pipe-hard-icon',   status:'pipe-hard-status',   score:'score-hard',   bar:'bar-hard',   subs:'subs-hard',   running:'running-hard',   elapsed:'elapsed-hard',   color:'bg-error',      textColor:'text-error'      },
+};
+
+function setPipeQueued(key) {
+  const p = PIPE[key];
+  document.getElementById(p.fill).style.width = '5%';
+  document.getElementById(p.fill).className = `h-full bg-[#8b919d]`;
+  document.getElementById(p.time).textContent = '—';
+  document.getElementById(p.time).className = `${p.textColor}`;
+  document.getElementById(p.icon).textContent = 'hourglass_empty';
+  document.getElementById(p.icon).className = `material-symbols-outlined text-[10px] text-[#dfe2eb]/30`;
+  document.getElementById(p.status).textContent = 'QUEUED';
+  document.getElementById(p.score).textContent = '—';
+  document.getElementById(`running-${key}`).classList.remove('hidden');
+  document.getElementById(`elapsed-${key}`).textContent = '';
+}
+
+function setPipeRunning(key) {
+  const p = PIPE[key];
+  const fill = document.getElementById(p.fill);
+  fill.style.width = '100%';
+  fill.className = `h-full ${p.color} pipe-running`;
+  document.getElementById(p.time).textContent = 'running...';
+  document.getElementById(p.icon).textContent = 'sync';
+  document.getElementById(p.icon).className = `material-symbols-outlined text-[10px] ${p.textColor}`;
+  document.getElementById(p.status).textContent = 'SIMULATING...';
+}
+
+function setPipeDone(key, score, elapsed, graderResult) {
+  const p = PIPE[key];
+  const fill = document.getElementById(p.fill);
+  fill.style.width = Math.round(score * 100) + '%';
+  fill.className = `h-full ${p.color}`;
+  document.getElementById(p.time).textContent = elapsed + 's';
+  document.getElementById(p.time).className = `${p.textColor}`;
+  document.getElementById(p.icon).textContent = 'check_circle';
+  document.getElementById(p.icon).className = `material-symbols-outlined text-[10px] ${p.textColor}`;
+  document.getElementById(p.status).textContent = 'STABLE — COMPLETE';
+  document.getElementById(p.score).textContent = score.toFixed(2);
+  document.getElementById(`running-${key}`).classList.add('hidden');
+  document.getElementById(`elapsed-${key}`).textContent = `⏱ ${elapsed}s`;
+  // Update bar
+  document.getElementById(p.bar).style.width = Math.round(score * 100) + '%';
+  // Replace sub-scores with live grader data
+  if (graderResult) {
+    const entries = Object.entries(graderResult)
+      .filter(([k]) => k !== 'final_score' && typeof graderResult[k] === 'number');
+    if (entries.length) {
+      document.getElementById(p.subs).innerHTML = entries.map(([k, v]) => `
+        <div class="flex justify-between items-end border-b border-[#30363D] pb-2">
+          <span class="text-xs text-[#8b919d] uppercase">${k.replace(/_score$/, '').replace(/_/g, ' ')}</span>
+          <span class="text-xl font-bold text-[#dfe2eb]">${v.toFixed(3)}</span>
+        </div>`).join('');
+    }
+  }
+}
+
+function setPipeError(key, msg) {
+  const p = PIPE[key];
+  document.getElementById(p.fill).style.width = '0%';
+  document.getElementById(p.icon).textContent = 'error';
+  document.getElementById(p.icon).className = `material-symbols-outlined text-[10px] text-error`;
+  document.getElementById(p.status).textContent = 'ERROR';
+  document.getElementById(p.score).textContent = 'ERR';
+  document.getElementById(`running-${key}`).classList.add('hidden');
+  document.getElementById(`elapsed-${key}`).textContent = msg.slice(0, 60);
+}
+
+/* ── Main run function ────────────────────────── */
+async function runBaseline() {
+  const btn = document.getElementById('run-btn');
+  btn.disabled = true;
+  btn.innerHTML = 'RUNNING... <span class="material-symbols-outlined animate-spin">autorenew</span>';
+  document.getElementById('err-msg').classList.add('hidden');
+  document.getElementById('agent-status').textContent = 'AGENT ACTIVE';
+  document.getElementById('agent-dot').className = 'w-2 h-2 bg-secondary animate-pulse';
+
+  const tasks = [
+    { id: 'task_1_easy',   key: 'easy'   },
+    { id: 'task_2_medium', key: 'medium' },
+    { id: 'task_3_hard',   key: 'hard'   },
+  ];
+
+  // Set all to queued first
+  tasks.forEach(t => setPipeQueued(t.key));
+
+  // Run all 3 tasks in parallel
+  await Promise.all(tasks.map(async (t) => {
+    const t0 = performance.now();
+    setPipeRunning(t.key);
+    try {
+      const d = await apiFetch('/simulate', {
+        method: 'POST',
+        body: JSON.stringify({ task_id: t.id, policy: 'greedy', seed: 42 }),
+      });
+      const elapsed = ((performance.now() - t0) / 1000).toFixed(2);
+      const score   = d.grader_result?.final_score ?? 0;
+      setPipeDone(t.key, score, elapsed, d.grader_result);
+    } catch (e) {
+      setPipeError(t.key, e.message);
+      document.getElementById('err-msg').textContent = `${t.key}: ${e.message}`;
+      document.getElementById('err-msg').classList.remove('hidden');
+    }
+  }));
+
+  btn.disabled = false;
+  btn.innerHTML = 'RUN BASELINE ASSESSMENT <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform" data-icon="play_arrow">play_arrow</span>';
+  document.getElementById('agent-status').textContent = 'ASSESSMENT COMPLETE';
+}
+
+/* ── Init ─────────────────────────────────────── */
+checkStatus();
+setInterval(checkStatus, 15000);
+</script>
+</body></html>

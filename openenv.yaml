@@ -1,0 +1,128 @@
+name: agronexus
+version: "1.0.0"
+description: >
+  A complete OpenEnv environment where an AI agent manages a simulated
+  farm across a 90-day growing season. The agent makes daily decisions \u2014
+  irrigate, fertilize, apply pesticide, harvest, sell \u2014 to maximize crop
+  yield and profit under real-world constraints including drought, pest
+  outbreaks, budget limits, and dynamic market prices.
+
+author: "School of Technology Hackathon Team"
+license: MIT
+tags:
+  - agriculture
+  - reinforcement-learning
+  - multi-objective
+  - real-world
+  - openenv
+  - pytorch
+  - meta-hackathon
+
+environment:
+  class: AgriculturalEnvironment
+  module: env.environment
+  spec_version: "1.0"
+
+tasks:
+  - id: task_1_easy
+    config: tasks/task_easy.json
+    difficulty: easy
+    episode_days: 30
+    target_score: [0.7, 1.0]
+
+  - id: task_2_medium
+    config: tasks/task_medium.json
+    difficulty: medium
+    episode_days: 60
+    target_score: [0.4, 0.7]
+
+  - id: task_3_hard
+    config: tasks/task_hard.json
+    difficulty: hard
+    episode_days: 90
+    target_score: [0.2, 0.5]
+
+api:
+  framework: fastapi
+  endpoints:
+    - path: /reset
+      method: POST
+      description: Reset environment and return first observation
+    - path: /step
+      method: POST
+      description: Submit action and advance environment one step
+    - path: /state
+      method: GET
+      description: Return full internal environment state
+    - path: /tasks
+      method: GET
+      description: List all tasks and their action schemas
+    - path: /grader
+      method: POST
+      description: Return grader score after episode completion
+    - path: /baseline
+      method: POST
+      description: Run baseline inference script and return scores
+    - path: /simulate
+      method: POST
+      description: Run a full episode and return complete trajectory
+
+observation_space:
+  type: dict
+  fields:
+    day: int
+    season_phase: string
+    budget_left: float
+    market_prices: dict
+    weather: dict
+    zones: list
+    history: list
+
+action_space:
+  type: dict
+  fields:
+    action_type:
+      type: string
+      enum: [irrigate, fertilize, pesticide, harvest, wait, sell]
+    zone:
+      type: int
+      optional: true
+    amount:
+      type: float
+      optional: true
+    type:
+      type: string
+      optional: true
+    days:
+      type: int
+      optional: true
+    market:
+      type: string
+      optional: true
+    crop:
+      type: string
+      optional: true
+
+reward:
+  type: dict
+  fields:
+    step_reward: float
+    episode_reward: float
+    yield_component: float
+    health_component: float
+    efficiency_component: float
+    done: bool
+    info: dict
+
+docker:
+  base_image: python:3.11-slim
+  port: 8000
+  health_check: /state
+
+huggingface:
+  space_sdk: docker
+  app_port: 8000
+  tags:
+    - openenv
+    - agriculture
+    - reinforcement-learning
