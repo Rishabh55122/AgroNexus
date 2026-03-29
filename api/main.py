@@ -1,18 +1,17 @@
 """
-AgroNexus — FastAPI entry point.
-Run with: uvicorn api.main:app --host 0.0.0.0 --port 8000
+AgroNexus — Precision Agriculture OpenEnv
+FastAPI entry point with UI serving
 """
+import os
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from api.routes import router
 
 app = FastAPI(
-    title="AgroNexus",
-    description=(
-        "An OpenEnv-compliant reinforcement learning environment "
-        "where an AI agent manages a simulated farm across a 90-day "
-        "growing season. Supports 3 tasks: easy, medium, hard."
-    ),
+    title="AgroNexus — Precision Agriculture OpenEnv",
+    description="OpenEnv-compliant RL environment for precision agriculture.",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
@@ -25,25 +24,36 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# API routes MUST come before static file mount
 app.include_router(router)
 
-from fastapi.staticfiles import StaticFiles
-import os
+# Serve UI pages as named routes
+@app.get("/dashboard", include_in_schema=False)
+def dashboard():
+    return FileResponse("ui/index.html")
 
-if not os.path.exists("ui"):
-    os.makedirs("ui")
+@app.get("/demo", include_in_schema=False)
+def demo_page():
+    return FileResponse("ui/demo.html")
 
-app.mount("/ui", StaticFiles(directory="ui", html=True), name="ui")
+@app.get("/control", include_in_schema=False)
+def control_page():
+    return FileResponse("ui/control.html")
 
-
-@app.get("/")
+# Root serves the main UI dashboard
+@app.get("/", include_in_schema=False)
 def root():
-    """Health check — returns environment info."""
-    return {
-        "name":        "agronexus",
-        "version":     "1.0.0",
-        "status":      "running",
-        "tasks":       ["task_1_easy", "task_2_medium", "task_3_hard"],
-        "docs":        "/docs",
-        "openenv":     "openenv.yaml",
-    }
+    if os.path.exists("ui/index.html"):
+        return FileResponse("ui/index.html")
+    return JSONResponse({
+        "name":    "agronexus",
+        "version": "1.0.0",
+        "status":  "running",
+        "tasks":   ["task_1_easy", "task_2_medium", "task_3_hard"],
+        "docs":    "/docs",
+        "openenv": "openenv.yaml",
+    })
+
+# Mount static files LAST — after all routes
+if os.path.exists("ui"):
+    app.mount("/ui", StaticFiles(directory="ui", html=True), name="ui")

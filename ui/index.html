@@ -116,9 +116,9 @@
 <span class="text-2xl font-bold tracking-tighter text-[#6bfb9a] uppercase font-headline">AgroNexus</span>
 </div>
 <nav class="hidden md:flex gap-8 items-center">
-<a class="font-headline text-sm font-bold text-[#6bfb9a] border-b-2 border-[#6bfb9a] pb-1 cursor-pointer active:scale-95 ease-in-out transition-all" href="/ui/">Dashboard</a>
-<a class="font-headline text-sm font-bold text-slate-400 hover:text-[#6bfb9a] transition-colors cursor-pointer active:scale-95 ease-in-out" href="/ui/control.html">Control</a>
-<a class="font-headline text-sm font-bold text-slate-400 hover:text-[#6bfb9a] transition-colors cursor-pointer active:scale-95 ease-in-out" href="/ui/demo.html">Demo</a>
+<a class="font-headline text-sm font-bold text-[#6bfb9a] border-b-2 border-[#6bfb9a] pb-1 cursor-pointer active:scale-95 ease-in-out transition-all" href="/dashboard">Dashboard</a>
+<a class="font-headline text-sm font-bold text-slate-400 hover:text-[#6bfb9a] transition-colors cursor-pointer active:scale-95 ease-in-out" href="/control">Control</a>
+<a class="font-headline text-sm font-bold text-slate-400 hover:text-[#6bfb9a] transition-colors cursor-pointer active:scale-95 ease-in-out" href="/demo">Demo</a>
 </nav>
 <div class="flex items-center gap-4">
 <span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-[#6bfb9a] transition-colors">notifications</span>
@@ -425,15 +425,15 @@
 </main>
 <!-- Navigation Overlay (Mobile) -->
 <nav class="fixed bottom-0 left-0 w-full md:hidden bg-[#10141a]/90 backdrop-blur-xl border-t border-[#3d4a3e]/20 flex justify-around items-center px-4 py-3 z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
-<a href="/ui/" class="flex flex-col items-center justify-center text-[#6bfb9a] bg-[#6bfb9a]/10 rounded-xl px-4 py-1 shadow-[0_0_10px_rgba(107,251,154,0.2)]">
+<a href="/dashboard" class="flex flex-col items-center justify-center text-[#6bfb9a] bg-[#6bfb9a]/10 rounded-xl px-4 py-1 shadow-[0_0_10px_rgba(107,251,154,0.2)]">
 <span class="material-symbols-outlined text-xl">dashboard</span>
 <span class="font-headline text-[8px] uppercase tracking-wider mt-0.5">Dashboard</span>
 </a>
-<a href="/ui/control.html" class="flex flex-col items-center justify-center text-slate-500 opacity-70">
+<a href="/control" class="flex flex-col items-center justify-center text-slate-500 opacity-70">
 <span class="material-symbols-outlined text-xl">settings_remote</span>
 <span class="font-headline text-[8px] uppercase tracking-wider mt-0.5">Control</span>
 </a>
-<a href="/ui/demo.html" class="flex flex-col items-center justify-center text-slate-500 opacity-70">
+<a href="/demo" class="flex flex-col items-center justify-center text-slate-500 opacity-70">
 <span class="material-symbols-outlined text-xl">sensors</span>
 <span class="font-headline text-[8px] uppercase tracking-wider mt-0.5">Demo</span>
 </a>
@@ -446,7 +446,8 @@
 <!-- ═══════════════════════ LIVE API INTEGRATION ═══════════════════════ -->
 <script>
 /* ── Config ─────────────────────────────────────── */
-const API = 'http://localhost:8000';
+const BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8000' : '';
+const API = BASE_URL;
 let taskId  = 'task_2_medium';
 let policy  = 'random';
 let running = false, paused = false, isDone = false;
@@ -464,9 +465,11 @@ async function apiFetch(p, opts={}) {
 /* ── Status badge ───────────────────────────────── */
 async function checkStatus() {
   try {
-    await apiFetch('/');
-    document.getElementById('api-dot').className   = 'w-2 h-2 rounded-full bg-green-400';
-    document.getElementById('api-label').textContent = 'live';
+    const data = await apiFetch('/');
+    if (data.status === 'running') {
+      document.getElementById('api-dot').className   = 'w-2 h-2 rounded-full bg-green-400';
+      document.getElementById('api-label').textContent = 'live';
+    }
   } catch {
     document.getElementById('api-dot').className   = 'w-2 h-2 rounded-full bg-red-400';
     document.getElementById('api-label').textContent = 'offline';

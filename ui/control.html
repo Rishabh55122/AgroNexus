@@ -113,9 +113,9 @@
 <h1 class="text-2xl font-bold tracking-tighter text-blue-400 font-headline">AgroNexus</h1>
 </div>
 <nav class="hidden md:flex items-center gap-8">
-<a class="font-headline tracking-wider uppercase text-sm text-slate-400 hover:text-white transition-colors" href="/ui/">Dashboard</a>
-<a class="font-headline tracking-wider uppercase text-sm text-blue-400 border-b-2 border-blue-400 pb-1" href="#">Control</a>
-<a class="font-headline tracking-wider uppercase text-sm text-slate-400 hover:text-white transition-colors" href="/ui/demo.html">Demo</a>
+<a class="font-headline tracking-wider uppercase text-sm text-slate-400 hover:text-white transition-colors" href="/dashboard">Dashboard</a>
+<a class="font-headline tracking-wider uppercase text-sm text-blue-400 border-b-2 border-blue-400 pb-1" href="/control">Control</a>
+<a class="font-headline tracking-wider uppercase text-sm text-slate-400 hover:text-white transition-colors" href="/demo">Demo</a>
 </nav>
 <div class="flex items-center gap-4">
 <span id="api-badge" class="font-headline tracking-wider uppercase text-xs px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded-full">OPERATIONAL</span>
@@ -371,7 +371,7 @@ SUCCESS
 </main>
 <!-- BottomNavBar (Mobile only) -->
 <nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 h-20 bg-[#161b22]/80 backdrop-blur-2xl border-t border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] rounded-t-2xl">
-<a href="/ui/" class="flex flex-col items-center justify-center text-slate-500 hover:text-blue-300 transition-all">
+<a href="/dashboard" class="flex flex-col items-center justify-center text-slate-500 hover:text-blue-300 transition-all">
 <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
 <span class="font-headline text-[10px] uppercase tracking-widest mt-1">Dashboard</span>
 </a>
@@ -379,7 +379,7 @@ SUCCESS
 <span class="material-symbols-outlined" data-icon="settings_remote">settings_remote</span>
 <span class="font-headline text-[10px] uppercase tracking-widest mt-1">Control</span>
 </div>
-<a href="/ui/demo.html" class="flex flex-col items-center justify-center text-slate-500 hover:text-blue-300 transition-all">
+<a href="/demo" class="flex flex-col items-center justify-center text-slate-500 hover:text-blue-300 transition-all">
 <span class="material-symbols-outlined" data-icon="play_circle">play_circle</span>
 <span class="font-headline text-[10px] uppercase tracking-widest mt-1">Demo</span>
 </a>
@@ -391,7 +391,8 @@ SUCCESS
 
 <!-- ═══════════════════════ LIVE API INTEGRATION ═══════════════════════ -->
 <script>
-const API = 'http://localhost:8000';
+const BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8000' : '';
+const API = BASE_URL;
 let taskId = 'task_2_medium';
 let obs    = null;
 

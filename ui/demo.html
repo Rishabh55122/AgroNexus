@@ -100,9 +100,9 @@
 <span class="text-2xl font-bold tracking-widest text-[#58A6FF] font-['Space_Grotesk'] uppercase tracking-tighter">AGRONEXUS</span>
 </div>
 <nav class="hidden md:flex items-center gap-8">
-<a class="text-[#dfe2eb] opacity-70 font-['Space_Grotesk'] uppercase tracking-tighter text-sm hover:text-[#58A6FF] transition-all" href="/ui/">Dashboard</a>
-<a class="text-[#dfe2eb] opacity-70 font-['Space_Grotesk'] uppercase tracking-tighter text-sm hover:text-[#58A6FF] transition-all" href="/ui/control.html">Control</a>
-<a class="text-[#58A6FF] border-b-2 border-[#58A6FF] pb-1 font-['Space_Grotesk'] uppercase tracking-tighter text-sm" href="#">Demo</a>
+<a class="text-[#dfe2eb] opacity-70 font-['Space_Grotesk'] uppercase tracking-tighter text-sm hover:text-[#58A6FF] transition-all" href="/dashboard">Dashboard</a>
+<a class="text-[#dfe2eb] opacity-70 font-['Space_Grotesk'] uppercase tracking-tighter text-sm hover:text-[#58A6FF] transition-all" href="/control">Control</a>
+<a class="text-[#58A6FF] border-b-2 border-[#58A6FF] pb-1 font-['Space_Grotesk'] uppercase tracking-tighter text-sm" href="/demo">Demo</a>
 </nav>
 <div class="flex items-center gap-4">
 <div class="h-8 w-8 bg-surface-container-high flex items-center justify-center border border-outline-variant/20">
@@ -288,11 +288,11 @@
 </main>
 <!-- Navigation Shell Support (BottomNavBar for Mobile) -->
 <div class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center h-16 pb-safe bg-[#0a0e14]/80 backdrop-blur-xl border-t border-[#414752]/15 z-50">
-<a href="/ui/" class="flex flex-col items-center justify-center text-[#dfe2eb]/50 py-2">
+<a href="/dashboard" class="flex flex-col items-center justify-center text-[#dfe2eb]/50 py-2">
 <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
 <span class="font-['Space_Grotesk'] text-[10px] uppercase font-bold">Dashboard</span>
 </a>
-<a href="/ui/control.html" class="flex flex-col items-center justify-center text-[#dfe2eb]/50 py-2">
+<a href="/control" class="flex flex-col items-center justify-center text-[#dfe2eb]/50 py-2">
 <span class="material-symbols-outlined" data-icon="settings_input_component">settings_input_component</span>
 <span class="font-['Space_Grotesk'] text-[10px] uppercase font-bold">Control</span>
 </a>
@@ -313,7 +313,8 @@
 
 <!-- ══════════════════════ LIVE API INTEGRATION ══════════════════════ -->
 <script>
-const API = 'http://localhost:8000';
+const BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8000' : '';
+const API = BASE_URL;
 
 /* ── helpers ──────────────────────────────────── */
 async function apiFetch(path, opts = {}) {
@@ -325,8 +326,10 @@ async function apiFetch(path, opts = {}) {
 /* ── API status dot ───────────────────────────── */
 async function checkStatus() {
   try {
-    await apiFetch('/');
-    document.getElementById('api-dot').className = 'w-2 h-2 rounded-full bg-green-400';
+    const data = await apiFetch('/');
+    if (data.status === 'running') {
+      document.getElementById('api-dot').className = 'w-2 h-2 rounded-full bg-green-400';
+    }
   } catch {
     document.getElementById('api-dot').className = 'w-2 h-2 rounded-full bg-red-400';
   }
