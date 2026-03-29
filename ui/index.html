@@ -463,18 +463,37 @@ async function apiFetch(p, opts={}) {
 }
 
 /* ── Status badge ───────────────────────────────── */
-async function checkStatus() {
-  try {
-    const data = await apiFetch('/');
-    if (data.status === 'running') {
-      document.getElementById('api-dot').className   = 'w-2 h-2 rounded-full bg-green-400';
-      document.getElementById('api-label').textContent = 'live';
+async function checkApiStatus() {
+    try {
+        const res = await fetch(`${BASE_URL}/`);
+        if (!res.ok) throw new Error('not ok');
+        const data = await res.json();
+        if (data.status === 'running') {
+            const statusEls = document.querySelectorAll(
+                '[data-status], #status-badge, .status-badge, ' +
+                '.status-indicator, #connection-status, .offline-badge, #api-label'
+            );
+            statusEls.forEach(el => {
+                el.textContent = 'ONLINE';
+                el.style.color = '#22C55E';
+                el.style.background = 'rgba(34,197,94,0.15)';
+            });
+            const dots = document.querySelectorAll(
+                '.status-dot, .connection-dot, .online-dot, #api-dot'
+            );
+            dots.forEach(d => {
+                d.style.background = '#22C55E';
+                d.style.boxShadow = '0 0 6px #22C55E';
+            });
+        }
+    } catch(e) {
+        console.warn('Status check failed — but server may still be running:', e);
     }
-  } catch {
-    document.getElementById('api-dot').className   = 'w-2 h-2 rounded-full bg-red-400';
-    document.getElementById('api-label').textContent = 'offline';
-  }
 }
+
+// Run immediately and every 30 seconds
+checkApiStatus();
+setInterval(checkApiStatus, 30000);
 
 /* ── Task buttons ───────────────────────────────── */
 function setTask(t) {

@@ -598,5 +598,39 @@ function updateOrbs(zones) {
 updateZoneDisplay(9);
 updateFlowDisplay(32);
 resetSim();
+
+/* ── Status polling ───────────────────────────────── */
+async function checkApiStatus() {
+    try {
+        const res = await fetch(`${BASE_URL}/`);
+        if (!res.ok) throw new Error('not ok');
+        const data = await res.json();
+        if (data.status === 'running') {
+            const statusEls = document.querySelectorAll(
+                '[data-status], #status-badge, .status-badge, ' +
+                '.status-indicator, #connection-status, .offline-badge, #api-label, #api-badge'
+            );
+            statusEls.forEach(el => {
+                el.textContent = 'ONLINE';
+                el.style.color = '#22C55E';
+                el.style.background = 'rgba(34,197,94,0.15)';
+                el.style.borderColor = 'transparent';
+            });
+            const dots = document.querySelectorAll(
+                '.status-dot, .connection-dot, .online-dot, #api-dot'
+            );
+            dots.forEach(d => {
+                d.style.background = '#22C55E';
+                d.style.boxShadow = '0 0 6px #22C55E';
+            });
+        }
+    } catch(e) {
+        console.warn('Status check failed — but server may still be running:', e);
+    }
+}
+
+// Run immediately and every 30 seconds
+checkApiStatus();
+setInterval(checkApiStatus, 30000);
 </script>
 </body></html>

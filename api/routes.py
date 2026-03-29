@@ -159,52 +159,117 @@ def state(task_id: str = "task_1_easy"):
 @router.get("/tasks")
 def list_tasks():
     """
-    Returns all available tasks with their configs
-    and the full action schema. Required by OpenEnv spec.
+    Returns all available tasks with full descriptions,
+    configs and complete action schema.
+    Required by OpenEnv spec.
     """
+    import json as _json
+
+    task_file_map = {
+        "task_1_easy":   "tasks/task_easy.json",
+        "task_2_medium": "tasks/task_medium.json",
+        "task_3_hard":   "tasks/task_hard.json",
+    }
+
     tasks = []
     for task_id, cfg in TASK_CONFIGS.items():
-        task_file = f"tasks/task_{cfg['scenario'].split('_')[0]}.json"
+        task_data = {}
+        filepath = task_file_map.get(task_id, "")
         try:
-            with open(task_file) as f:
-                task_data = json.load(f)
-        except Exception:
-            task_data = {}
+            with open(filepath) as f:
+                task_data = _json.load(f)
+        except Exception as e:
+            print(f"Warning: could not read {filepath}: {e}")
 
         tasks.append({
-            "task_id":       task_id,
-            "difficulty":    task_data.get("difficulty", ""),
-            "description":   task_data.get("description", ""),
+            "task_id":      task_id,
+            "difficulty":   task_data.get(
+                "difficulty",
+                cfg.get("scenario", "unknown")
+            ),
+            "description":  task_data.get(
+                "description",
+                f"{task_id} — {cfg.get('scenario','normal')} scenario, "
+                f"{cfg.get('episode_days',30)} days, "
+                f"{cfg.get('num_zones',2)} zones"
+            ),
             "episode_days":  cfg["episode_days"],
             "num_zones":     cfg["num_zones"],
             "scenario":      cfg["scenario"],
-            "target_score":  [
+            "budget":        cfg.get("budget", 1000.0),
+            "water_budget":  cfg.get("water_budget", 500.0),
+            "target_score": [
                 task_data.get("target_score_min", 0.0),
                 task_data.get("target_score_max", 1.0),
             ],
+            "success_criteria": task_data.get("success_criteria", []),
             "action_schema": {
                 "action_type": {
-                    "type": "string",
-                    "enum": [
+                    "type":        "string",
+                    "enum":        [
                         "irrigate", "fertilize", "pesticide",
                         "harvest", "wait", "sell"
                     ],
-                    "required": True,
+                    "required":    True,
+                    "description": (
+                        "Action to perform this turn. "
+                        "irrigate=add water to zone, "
+                        "fertilize=boost crop health, "
+                        "pesticide=reduce pest risk, "
+                        "harvest=collect crop at stage 4 only, "
+                        "wait=skip turn, "
+                        "sell=sell harvested crop for revenue"
+                    ),
                 },
-                "zone":   {"type": "int",    "required": False,
-                           "description": "Zone index (0-based)"},
-                "amount": {"type": "float",  "required": False,
-                           "description": "Litres for irrigate, tons for sell"},
-                "type":   {"type": "string", "required": False,
-                           "description": "nitrogen | phosphorus | potassium"},
-                "days":   {"type": "int",    "required": False,
-                           "description": "Days to wait"},
-                "market": {"type": "string", "required": False,
-                           "description": "local | export"},
-                "crop":   {"type": "string", "required": False,
-                           "description": "wheat | corn | soy"},
+                "zone": {
+                    "type":        "int",
+                    "required":    False,
+                    "description": (
+                        f"Zone index 0-based "
+                        f"(0 to {cfg.get('num_zones',2)-1}). "
+                        "Required for irrigate, fertilize, "
+                        "pesticide, harvest."
+                    ),
+                },
+                "amount": {
+                    "type":        "float",
+                    "required":    False,
+                    "description": (
+                        "Litres of water for irrigate (5.0-50.0). "
+                        "Tons of crop for sell (1.0-100.0)."
+                    ),
+                },
+                "type": {
+                    "type":        "string",
+                    "required":    False,
+                    "description": (
+                        "Fertilizer type: "
+                        "nitrogen (boosts health +0.05) | "
+                        "phosphorus | potassium"
+                    ),
+                },
+                "days": {
+                    "type":        "int",
+                    "required":    False,
+                    "description": "Number of days to wait. Default 1.",
+                },
+                "market": {
+                    "type":        "string",
+                    "required":    False,
+                    "description": (
+                        "local = always open, base price. "
+                        "export = opens every 7 days, "
+                        "20% price premium."
+                    ),
+                },
+                "crop": {
+                    "type":        "string",
+                    "required":    False,
+                    "description": "wheat | corn | soy",
+                },
             },
         })
+
     return {"tasks": tasks}
 
 
