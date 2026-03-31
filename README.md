@@ -7,12 +7,12 @@ sdk: docker
 app_port: 8000
 ---
 
-# AgroNexus
-> Precision Agriculture Decision Agent Environment
+# AgroNexus / Precision Farming
+> An algorithmic agriculture decision engine and OpenEnv simulator
 
-AgroNexus is an OpenEnv-compliant reinforcement learning environment. It simulates a stochastic, multi-zone farm across a 90-day growing season, forcing agents to balance water budgets, navigate dynamic market prices, and mitigate crop-spanning pest outbreaks. 
+AgroNexus is a reinforcement learning sandbox built to simulate the punishing realities of modern, multi-zone precision farming. You manage a 90-day growing season by balancing rigid water budgets, timing crop harvests to volatile market prices, and fighting ruthless pest contagions before they wipe out the grid.
 
-Included is a full FastAPI backend and a custom browser-based ops-dashboard for manual play, task observation, and algorithmic grading. 
+Included is a complete FastAPI simulation backend and a custom ops-dashboard for manual farming, task observation, and algorithmic grading.
 
 ## The Simulation
 
@@ -76,7 +76,7 @@ Requires Python 3.11+.
 pip install -r requirements.txt
 uvicorn api.main:app --host 0.0.0.0 --port 8000
 ```
-Then navigate to `http://localhost:8000/` for the interactive dashboard.
+Then navigate to `http://localhost:8000/` for the interactive tractor dashboard.
 
 ### Docker
 ```bash
@@ -97,10 +97,12 @@ python baseline.py --policy llm --api http://localhost:8000
 
 ```text
 ├── api/             # FastAPI routing and entrypoints
-├── env/             # Core simulation logic (weather, market, grid)
+├── env/             # Core simulation logic (weather, market, farm grid)
+├── server/          # OpenEnv required multi-mode app hook
 ├── tasks/           # OpenEnv scenario definitions
 ├── ui/              # Static ops-dashboard HTML/Vanilla JS 
 ├── baseline.py      # Starter policies implementation
+├── inference.py     # OpenEnv standard evaluation script
 ├── openenv.yaml     # Metadata
 └── Dockerfile       # Deployment config
 ```
@@ -109,11 +111,11 @@ python baseline.py --policy llm --api http://localhost:8000
 
 | Resource | Method | Description |
 |---|---|---|
-| `/reset` | `POST` | Reset environment to day 0. Returns first observation. |
-| `/step` | `POST` | Submit an action. Advances the environment by N days. |
-| `/state` | `GET` | Return the full internal engine state. |
-| `/tasks` | `GET` | List all available tasks, configs, and the action schema. |
-| `/simulate` | `POST` | Run a full episode head-to-tail and return trajectory. |
+| `/reset` | `POST` | Reset farm environment to day 0. Returns first observation. |
+| `/step` | `POST` | Submit a farming action. Advances the engine by N days. |
+| `/state` | `GET` | Dump the full internal farm engine state. |
+| `/tasks` | `GET` | List all config rules, tasks, and the action schema. |
+| `/simulate` | `POST` | Run a full season head-to-tail and return trajectory logs. |
 
 ---
 

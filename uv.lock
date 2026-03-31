@@ -1,0 +1,17 @@
+version = 1
+requires-python = ">=3.11"
+
+[[package]]
+name = "agronexus"
+version = "1.0.0"
+source = { editable = "." }
+dependencies = [
+  { name = "fastapi" },
+  { name = "uvicorn" },
+  { name = "pydantic" },
+  { name = "openai" },
+  { name = "pyyaml" },
+  { name = "requests" },
+  { name = "aiofiles" },
+  { name = "openenv-core" },
+]
