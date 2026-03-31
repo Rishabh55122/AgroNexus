@@ -128,4 +128,5 @@ huggingface:
     - reinforcement-learning
 
 dependencies:
-  - openenv-core>=0.2.0
+  python:
+    - openenv-core>=0.2.0

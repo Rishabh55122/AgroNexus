@@ -13,8 +13,15 @@ dependencies = [
     "aiofiles==23.2.1",
 ]
 
+[project.scripts]
+server = "server.app:main"
+agronexus = "server.app:main"
+
+[project.optional-dependencies]
+openenv = ["openenv-core>=0.2.0"]
+
 [tool.hatch.build.targets.wheel]
-packages = ["env", "api"]
+packages = ["env", "api", "server"]
 
 [build-system]
 requires = ["hatchling"]
