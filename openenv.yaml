@@ -126,3 +126,6 @@ huggingface:
     - openenv
     - agriculture
     - reinforcement-learning
+
+dependencies:
+  - openenv-core>=0.2.0
