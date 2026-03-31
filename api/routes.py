@@ -50,42 +50,36 @@ def _get_env(task_id: str) -> AgriculturalEnvironment:
 class ResetRequest(BaseModel):
     task_id: str = "task_1_easy"
 
-
 class StepRequest(BaseModel):
-    task_id:     str = "task_1_easy"
-    action_type: str
+    task_id:     str             = "task_1_easy"
+    action_type: str             = "wait"
     zone:        Optional[int]   = None
     amount:      Optional[float] = None
     type:        Optional[str]   = None
-    days:        Optional[int]   = None
+    days:        Optional[int]   = 1
     market:      Optional[str]   = None
     crop:        Optional[str]   = None
-
 
 class GraderRequest(BaseModel):
     task_id: str = "task_1_easy"
 
-
 class SimulateRequest(BaseModel):
-    task_id: str    = "task_1_easy"
-    policy:  str    = "random"    # "random" | "greedy" | "wait"
-    seed:    int    = 42
-
+    task_id: str = "task_1_easy"
+    policy:  str = "greedy"
+    seed:    int = 42
 
 class BaselineRequest(BaseModel):
-    task_id: Optional[str] = None   # None = run all 3 tasks
-
+    task_id: Optional[str] = None
 
 # ─────────────────────────────────────────────
 # POST /reset
 # ─────────────────────────────────────────────
 
 @router.post("/reset")
-def reset(request: ResetRequest):
-    """
-    Resets the environment for the given task and returns
-    the first observation. Call this before every new episode.
-    """
+def reset(request: ResetRequest = None):
+    """Reset environment. Works with empty body — defaults to task_1_easy."""
+    if request is None:
+        request = ResetRequest()
     env = _get_env(request.task_id)
     obs = env.reset()
     return {
@@ -99,19 +93,16 @@ def reset(request: ResetRequest):
 # ─────────────────────────────────────────────
 
 @router.post("/step")
-def step(request: StepRequest):
-    """
-    Submits an action and advances the environment one day.
-    Returns observation, reward, done flag, and info dict.
-    """
+def step(request: StepRequest = None):
+    """Submit action. Works with empty body — defaults to wait action."""
+    if request is None:
+        request = StepRequest()
     env = _get_env(request.task_id)
-
     if env.day == 0:
         raise HTTPException(
             status_code=400,
             detail="Environment not reset. Call POST /reset first."
         )
-
     try:
         action = Action(
             action_type=request.action_type,
@@ -124,12 +115,10 @@ def step(request: StepRequest):
         )
     except Exception as e:
         raise HTTPException(status_code=422, detail=str(e))
-
     try:
         obs, reward, done, info = env.step(action)
     except RuntimeError as e:
         raise HTTPException(status_code=400, detail=str(e))
-
     return {
         "observation": obs.model_dump(),
         "reward":      reward.model_dump(),
@@ -278,26 +267,22 @@ def list_tasks():
 # ─────────────────────────────────────────────
 
 @router.post("/grader")
-def grade(request: GraderRequest):
-    """
-    Returns the grader score for the current episode.
-    Episode must be complete (done=True) before calling.
-    """
+def grade(request: GraderRequest = None):
+    """Grade episode. Works with empty body — defaults to task_1_easy."""
+    if request is None:
+        request = GraderRequest()
     env = _get_env(request.task_id)
-
     if not env.done:
         raise HTTPException(
             status_code=400,
             detail=(
                 f"Episode not finished for '{request.task_id}'. "
-                f"Current day: {env.day} / {env.episode_days}. "
-                "Keep stepping until done=True."
+                f"Current day: {env.day} / {env.episode_days}."
             )
         )
-
     result = env.grade()
     return {
-        "task_id": request.task_id,
+        "task_id":       request.task_id,
         "grader_result": result,
     }
 
@@ -307,41 +292,29 @@ def grade(request: GraderRequest):
 # ─────────────────────────────────────────────
 
 @router.post("/simulate")
-def simulate(request: SimulateRequest):
-    """
-    Runs a complete episode using a built-in policy.
-    Returns full reward trajectory and final grader score.
-    Useful for judges to quickly test the environment.
-
-    Policies:
-        random  — random valid action each step
-        greedy  — irrigate when dry, harvest when ready, else wait
-        wait    — always wait (baseline floor)
-    """
+def simulate(request: SimulateRequest = None):
+    """Run full episode. Works with empty body — defaults to task_1_easy greedy."""
+    if request is None:
+        request = SimulateRequest()
     import random
     rng = random.Random(request.seed)
-
-    env = _get_env(request.task_id)
+    env = AgriculturalEnvironment(request.task_id)
     obs = env.reset()
-
     trajectory = []
     done       = False
     step_num   = 0
-
     while not done:
         action = _pick_action(obs, request.policy, rng)
         obs, reward, done, info = env.step(action)
         step_num += 1
         trajectory.append({
-            "day":          obs.day,
-            "step_reward":  reward.step_reward,
+            "day":            obs.day,
+            "step_reward":    reward.step_reward,
             "episode_reward": reward.episode_reward,
-            "action":       action.model_dump(),
-            "done":         done,
+            "action":         action.model_dump(),
+            "done":           done,
         })
-
     grader_result = env.grade()
-
     return {
         "task_id":        request.task_id,
         "policy":         request.policy,
@@ -408,50 +381,37 @@ def _pick_action(obs, policy: str, rng) -> Action:
 # ─────────────────────────────────────────────
 
 @router.post("/baseline")
-def baseline(request: BaselineRequest):
-    """
-    Runs the greedy baseline policy across all 3 tasks
-    (or a single task if task_id specified).
-    Returns reproducible baseline scores for the submission.
-    Required by OpenEnv spec.
-    """
+def baseline(request: BaselineRequest = None):
+    """Run baseline across all tasks. Works with empty body."""
+    if request is None:
+        request = BaselineRequest()
+    import time, random
     task_ids = (
         [request.task_id]
         if request.task_id
         else list(TASK_CONFIGS.keys())
     )
-
     results = {}
     for task_id in task_ids:
         start_time = time.time()
-
         env  = AgriculturalEnvironment(task_id)
         obs  = env.reset()
         done = False
-
-        import random
-        rng = random.Random(42)
-
+        rng  = random.Random(42)
         while not done:
-            action       = _pick_action(obs, "greedy", rng)
+            action = _pick_action(obs, "greedy", rng)
             obs, reward, done, info = env.step(action)
-
         grader_result = env.grade()
-        elapsed       = round(time.time() - start_time, 2)
-
+        elapsed = round(time.time() - start_time, 2)
         results[task_id] = {
-            "final_score":    grader_result["final_score"],
-            "episode_reward": reward.episode_reward,
-            "grader_result":  grader_result,
+            "final_score":     grader_result["final_score"],
+            "episode_reward":  reward.episode_reward,
+            "grader_result":   grader_result,
             "elapsed_seconds": elapsed,
-            "policy":         "greedy",
-            "seed":           42,
+            "policy":          "greedy",
+            "seed":            42,
         }
-
     return {
         "baseline_scores": results,
-        "note": (
-            "Greedy policy: harvest when ready, "
-            "pesticide when risk > 0.6, irrigate when dry."
-        ),
+        "note": "Greedy policy — seed 42 — reproducible.",
     }

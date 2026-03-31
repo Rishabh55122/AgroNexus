@@ -9,4 +9,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "python -c 'from api.main import app; print(\"Import OK\")' && uvicorn api.main:app --host 0.0.0.0 --port 8000 --log-level debug"]
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "info"]

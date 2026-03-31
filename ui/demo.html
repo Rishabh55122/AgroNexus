@@ -107,8 +107,6 @@
 </nav>
 <div class="flex items-center gap-4">
 <div class="h-8 w-8 bg-surface-container-high flex items-center justify-center border border-outline-variant/20">
-<!-- API status replaces notification icon area -->
-<span id="api-dot" class="w-2 h-2 rounded-full bg-gray-500"></span>
 </div>
 <div class="h-10 w-10 overflow-hidden border border-primary/30">
 <img alt="Operator Profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYsyJOqEIVdC-Loi3UbG6cZ83pZvSbiVzCRtbUNbTw6MFvLOKGlF0YZ7PMfdBl21L1wIITp2xqiuolqdGSp0tHQ_ngJ2DRCbQDHcHz4mWJHdVIO6TXNWwFWapRtaXgdl66pa5mhwSL1ILgFOUZJyT5QwEmskEiBBLwYS89grMS7eRb94nxWM_hGrv5pu4ACPQMGb8pfmcpsi2nbj7YvpDGFsNXgthVFMpystM3XphUWyTCZ71lckWVomu3zJML6QJx_fWz8fJOgRU"/>
@@ -324,40 +322,6 @@ async function apiFetch(path, opts = {}) {
   return r.json();
 }
 
-/* ── Status badge ───────────────────────────────── */
-async function checkApiStatus() {
-    try {
-        const res = await fetch(`${BASE_URL}/`);
-        if (!res.ok) throw new Error('not ok');
-        const data = await res.json();
-        if (data.status === 'running') {
-            // Update status badge to ONLINE
-            const statusEls = document.querySelectorAll(
-                '[data-status], #status-badge, .status-badge, ' +
-                '.status-indicator, #connection-status, .offline-badge, #api-label'
-            );
-            statusEls.forEach(el => {
-                el.textContent = 'ONLINE';
-                el.style.color = '#22C55E';
-                el.style.background = 'rgba(34,197,94,0.15)';
-            });
-            // Update any dot indicators
-            const dots = document.querySelectorAll(
-                '.status-dot, .connection-dot, .online-dot, #api-dot'
-            );
-            dots.forEach(d => {
-                d.style.background = '#22C55E';
-                d.style.boxShadow = '0 0 6px #22C55E';
-            });
-        }
-    } catch(e) {
-        console.warn('Status check failed — but server may still be running:', e);
-    }
-}
-
-// Run immediately and every 30 seconds
-checkApiStatus();
-setInterval(checkApiStatus, 30000);
 
 /* ── Pipeline state helpers ───────────────────── */
 const PIPE = {
@@ -474,7 +438,5 @@ async function runBaseline() {
 }
 
 /* ── Init ─────────────────────────────────────── */
-checkStatus();
-setInterval(checkStatus, 15000);
 </script>
 </body></html>

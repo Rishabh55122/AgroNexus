@@ -6,48 +6,38 @@ colorTo: blue
 sdk: docker
 app_port: 8000
 ---
-# AgroNexus — AI Precision Agriculture Decision Agent
 
-An OpenEnv-compliant reinforcement learning environment where an AI agent
-manages a simulated farm across a 90-day growing season. The agent makes
-daily decisions — irrigate, fertilize, apply pesticide, harvest, sell —
-to maximize crop yield and profit under real-world constraints.
+# AgroNexus
+> Precision Agriculture Decision Agent Environment
 
-## Environment Description
+AgroNexus is an OpenEnv-compliant reinforcement learning environment. It simulates a stochastic, multi-zone farm across a 90-day growing season, forcing agents to balance water budgets, navigate dynamic market prices, and mitigate crop-spanning pest outbreaks. 
 
-The agent manages a 4×4 grid of farm zones across a growing season.
-Each zone has its own crop type, soil moisture, crop health, pest risk,
-and growth stage. The agent must balance water budgets, pest outbreaks,
-market timing, and crop health to maximize yield and profit.
+Included is a full FastAPI backend and a custom browser-based ops-dashboard for manual play, task observation, and algorithmic grading. 
 
-### What makes this unique
+## The Simulation
 
-- **Zone interdependency** — pest risk spreads 30% into adjacent zones
-  daily if untreated. Over-irrigation causes water runoff into neighbors.
-  Failed zones raise stress in adjacent zones.
-- **Delayed rewards** — a bad irrigation decision on day 15 shows up as
-  crop loss on day 45. Genuine long-horizon credit assignment problem.
-- **Stochastic weather** — rainy / dry / heatwave / frost events with
-  scenario-weighted probabilities. Drought activates mid-season.
-- **Dynamic market prices** — prices fluctuate ±15% daily. Export market
-  opens every 7 days at 20% premium. Crisis scenario triggers a 30% crash.
-- **State memory** — last 5 days of observations included. Agent can
-  reason across time, not just react to current snapshot.
+Agents manage up to a 16-zone farm grid. Every zone maintains local state (soil moisture, crop health, pest risk, growth stage). Actions are taken daily. 
 
-## Action Space
+**Key mechanical constraints:**
+- **Spatial Contagion:** Pest risks spread at a 30% transmission rate to adjacent zones daily. Over-irrigation causes water runoff into neighbors, drowning root systems.
+- **Credit Assignment:** Delayed rewards are strictly enforced. Poor irrigation execution on day 15 surfaces as terminal crop loss on day 45.
+- **Stochastic Events:** Weather is procedural (rainy, dry, heatwaves, frost). Mid-season evaluation triggers probability-weighted scenario shifts (e.g. severe droughts).
+- **Market Volatility:** Crop prices fluctuate ±15% daily. High-yield export markets open only every 7 days, carrying a 20% premium. Crisis scenarios trigger a sudden 30% price crash.
 
-All actions are flat JSON dicts with `action_type` as the key:
+## API Space
+
+State and actions are evaluated via flat JSON dicts. 
+
+### Actions
+Supported actions: `irrigate`, `fertilize`, `pesticide`, `harvest`, `wait`, `sell`.
 
 ```json
 { "action_type": "irrigate",  "zone": 2, "amount": 10.0 }
-{ "action_type": "fertilize", "zone": 1, "type": "nitrogen" }
-{ "action_type": "pesticide", "zone": 3 }
-{ "action_type": "harvest",   "zone": 0 }
-{ "action_type": "wait",      "days": 1 }
 { "action_type": "sell",      "amount": 50.0, "crop": "wheat", "market": "export" }
 ```
 
-## Observation Space
+### Observations
+The environment returns current day statistics alongside a rolling 5-day historical memory.
 
 ```json
 {
@@ -69,85 +59,62 @@ All actions are flat JSON dicts with `action_type` as the key:
 }
 ```
 
-## Tasks
+## Scenarios
 
-| Task | Difficulty | Days | Zones | Scenario | Target Score |
-|------|-----------|------|-------|----------|-------------|
-| task_1_easy | Easy | 30 | 2 | Normal | 0.7 – 1.0 |
-| task_2_medium | Medium | 60 | 4 | Drought | 0.4 – 0.7 |
-| task_3_hard | Hard | 90 | 16 | Crisis | 0.2 – 0.5 |
+| Core Task | Difficulty | Duration | Scale | Condition | Target Score |
+|---|---|---|---|---|---|
+| `task_1_easy` | Easy | 30 days | 2 zones | Normal | 0.70 – 1.00 |
+| `task_2_medium` | Medium | 60 days | 4 zones | Drought | 0.40 – 0.70 |
+| `task_3_hard` | Hard | 90 days | 16 zones | Crisis | 0.20 – 0.50 |
 
-## Setup
+## Quickstart
 
-### Local
+### Local Development
+Requires Python 3.11+.
 
 ```bash
 pip install -r requirements.txt
 uvicorn api.main:app --host 0.0.0.0 --port 8000
 ```
+Then navigate to `http://localhost:8000/` for the interactive dashboard.
 
 ### Docker
-
 ```bash
 docker build -t agronexus .
 docker run -p 8000:8000 agronexus
 ```
 
-### Baseline
-
+### Programmatic Baseline
 ```bash
-python baseline.py
+# Run greedy policy evaluation
 python baseline.py --task task_1_easy
+
+# Run LLM-driven policy (requires OPENAI_API_KEY)
 python baseline.py --policy llm --api http://localhost:8000
 ```
 
-## API Endpoints
+## Structure
 
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | /reset | Reset environment, return first observation |
-| POST | /step | Submit action, advance one day |
-| GET | /state | Return full internal state |
-| GET | /tasks | List all tasks and action schema |
-| POST | /grader | Return grader score after episode |
-| POST | /baseline | Run baseline policy, return all scores |
-| POST | /simulate | Run full episode, return trajectory |
-
-## Baseline Scores (greedy policy, seed=42)
-
-| Task | Score | Episode Reward |
-|------|-------|----------------|
-| task_1_easy | TBD | TBD |
-| task_2_medium | TBD | TBD |
-| task_3_hard | TBD | TBD |
-
-*Run `python baseline.py` to generate scores.*
-
-## Project Structure
-
-```
-agronexus/
-├── env/
-│   ├── environment.py
-│   ├── weather.py
-│   ├── farm.py
-│   ├── grid.py
-│   ├── market.py
-│   └── graders.py
-├── tasks/
-│   ├── task_easy.json
-│   ├── task_medium.json
-│   └── task_hard.json
-├── api/
-│   ├── main.py
-│   └── routes.py
-├── baseline.py
-├── openenv.yaml
-├── Dockerfile
-├── requirements.txt
-└── README.md
+```text
+├── api/             # FastAPI routing and entrypoints
+├── env/             # Core simulation logic (weather, market, grid)
+├── tasks/           # OpenEnv scenario definitions
+├── ui/              # Static ops-dashboard HTML/Vanilla JS 
+├── baseline.py      # Starter policies implementation
+├── openenv.yaml     # Metadata
+└── Dockerfile       # Deployment config
 ```
 
-## License
+## Endpoints
 
-MIT
+| Resource | Method | Description |
+|---|---|---|
+| `/reset` | `POST` | Reset environment to day 0. Returns first observation. |
+| `/step` | `POST` | Submit an action. Advances the environment by N days. |
+| `/state` | `GET` | Return the full internal engine state. |
+| `/tasks` | `GET` | List all available tasks, configs, and the action schema. |
+| `/simulate` | `POST` | Run a full episode head-to-tail and return trajectory. |
+
+---
+
+License: MIT

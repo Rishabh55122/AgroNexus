@@ -123,9 +123,6 @@
 </nav>
 <div class="flex items-center gap-4">
 <span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-[#6bfb9a] transition-colors">notifications</span>
-<!-- API status dot -->
-<span id="api-dot" class="w-2 h-2 rounded-full bg-gray-500"></span>
-<span id="api-label" class="text-[10px] font-headline uppercase text-slate-500">connecting</span>
 <span class="material-symbols-outlined text-[#6bfb9a] cursor-pointer active:scale-95 transition-all">account_circle</span>
 </div>
 </header>
@@ -463,38 +460,6 @@ async function apiFetch(p, opts={}) {
   return r.json();
 }
 
-/* ── Status badge ───────────────────────────────── */
-async function checkApiStatus() {
-    try {
-        const res = await fetch(`${BASE_URL}/`);
-        if (!res.ok) throw new Error('not ok');
-        const data = await res.json();
-        if (data.status === 'running') {
-            const statusEls = document.querySelectorAll(
-                '[data-status], #status-badge, .status-badge, ' +
-                '.status-indicator, #connection-status, .offline-badge, #api-label'
-            );
-            statusEls.forEach(el => {
-                el.textContent = 'ONLINE';
-                el.style.color = '#22C55E';
-                el.style.background = 'rgba(34,197,94,0.15)';
-            });
-            const dots = document.querySelectorAll(
-                '.status-dot, .connection-dot, .online-dot, #api-dot'
-            );
-            dots.forEach(d => {
-                d.style.background = '#22C55E';
-                d.style.boxShadow = '0 0 6px #22C55E';
-            });
-        }
-    } catch(e) {
-        console.warn('Status check failed — but server may still be running:', e);
-    }
-}
-
-// Run immediately and every 30 seconds
-checkApiStatus();
-setInterval(checkApiStatus, 30000);
 
 /* ── Task buttons ───────────────────────────────── */
 function setTask(t) {
@@ -769,9 +734,7 @@ function restoreStaticGrid() {
 }
 
 /* ── Init ───────────────────────────────────────── */
-checkStatus();
 handleReset();
-setInterval(checkStatus, 15000);
 </script>
 
 <!-- Speed selector pill (bottom right) -->
