@@ -250,7 +250,7 @@
 </div>
 <!-- AI Robot Icon Overlay -->
 <div class="absolute -top-4 -left-4 animate-bounce">
-<span class="material-symbols-outlined text-secondary text-lg" style="font-variation-settings: 'FILL' 1;">my_location</span>
+<img src="/ui/farmer.png" class="w-8 h-8 object-contain drop-shadow" alt="Farmer">
 </div>
 </div>
 <div class="w-24 h-24 bg-[#2D1B0E] border border-tertiary-container/30 relative shadow-2xl">
@@ -492,7 +492,7 @@ function tileHtml(z, i, isAgent) {
                 harv  ? '<span class="text-[8px] font-headline text-white/30 mt-1">DONE</span>'      :
                         `<span class="text-[8px] font-headline text-white/50 mt-1">${zid}</span>`;
   const pestDots= pest>0.4 ? `<div class="absolute bottom-1 right-1 flex gap-0.5">${'<div class="w-1 h-1 bg-error rounded-full animate-pulse"></div>'.repeat(Math.min(3,Math.ceil(pest*3)))}</div>` : '';
-  const agentBadge = isAgent ? `<div class="absolute -top-4 -left-4 animate-bounce"><span class="material-symbols-outlined text-secondary text-lg" style="font-variation-settings:'FILL' 1">my_location</span></div>` : '';
+  const agentBadge = isAgent ? `<div class="absolute -top-4 -left-4 animate-bounce"><img src="/ui/farmer.png" class="w-8 h-8 object-contain drop-shadow" alt="Farmer"></div>` : '';
   const border = ready ? 'border-tertiary/60'
                : health > 0.7 ? 'border-primary-container/30'
                : health > 0.4 ? 'border-tertiary-container/30'

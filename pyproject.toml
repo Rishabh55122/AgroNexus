@@ -11,17 +11,18 @@ dependencies = [
     "pyyaml==6.0.2",
     "requests==2.32.3",
     "aiofiles==23.2.1",
+    "openenv-core>=0.2.0",
 ]
 
 [project.scripts]
 server = "server.app:main"
 agronexus = "server.app:main"
 
-[project.optional-dependencies]
-openenv = ["openenv-core>=0.2.0"]
-
 [tool.hatch.build.targets.wheel]
 packages = ["env", "api", "server"]
+
+[tool.uv.sources]
+openenv-core = { git = "https://github.com/openenv/openenv-core.git" }
 
 [build-system]
 requires = ["hatchling"]

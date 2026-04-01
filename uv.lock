@@ -15,3 +15,8 @@ dependencies = [
   { name = "aiofiles" },
   { name = "openenv-core" },
 ]
+
+[[package]]
+name = "openenv-core"
+version = "0.2.0"
+source = { git = "https://github.com/openenv/openenv-core.git" }
