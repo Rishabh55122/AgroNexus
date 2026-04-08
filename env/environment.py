@@ -651,7 +651,7 @@ if __name__ == "__main__":
     result = env2.grade()
     print(json.dumps(result, indent=2))
     assert "final_score"  in result
-    assert 0.0 <= result["final_score"] <= 1.0
+    assert 0.0 < result["final_score"] < 1.0  # validator: strictly between 0 and 1 (exclusive)
     print("SUCCESS: grade() passed")
 
     # Sanity: run episode with harvest action and verify score improves

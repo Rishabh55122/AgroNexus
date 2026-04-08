@@ -46,13 +46,13 @@ class BaseGrader:
         raise NotImplementedError
 
     def _clamp(self, value: float) -> float:
-        """Ensures score is strictly within [0.0, 1.0]."""
-        return round(max(0.0, min(1.0, value)), 4)
+        """Ensures score is strictly within (0.0, 1.0) exclusive — validator requirement."""
+        return round(max(0.001, min(0.999, value)), 4)
 
     def _safe_divide(self, numerator: float, denominator: float) -> float:
-        """Division that returns 0.0 instead of ZeroDivisionError."""
+        """Division that returns 0.001 instead of ZeroDivisionError."""
         if denominator == 0:
-            return 0.0
+            return 0.001
         return numerator / denominator
 
 class Task1Grader(BaseGrader):
@@ -104,7 +104,7 @@ class Task1Grader(BaseGrader):
         Penalizes early harvest (stage < 4) and missed harvests.
         """
         if not log.harvest_events:
-            return 0.0
+            return 0.001
         correct = sum(
             1 for h in log.harvest_events
             if h.get("growth_stage") == int(GrowthStage.READY)
@@ -118,7 +118,7 @@ class Task1Grader(BaseGrader):
         Score degrades linearly as overuse increases.
         """
         if log.water_used == 0:
-            return 0.0
+            return 0.001
         ratio = self._safe_divide(log.water_budget, log.water_used)
         return self._clamp(ratio)
 
@@ -175,7 +175,7 @@ class Task2Grader(BaseGrader):
         Zero score if water used >= 2x budget.
         """
         if log.water_used <= log.water_budget:
-            return 1.0
+            return 0.999
         overuse = log.water_used - log.water_budget
         penalty = self._safe_divide(overuse, log.water_budget)
         return self._clamp(1.0 - penalty)
@@ -195,7 +195,7 @@ class Task2Grader(BaseGrader):
         Low average pest risk = high score.
         """
         if not log.daily_pest_risk:
-            return 1.0
+            return 0.999
         avg_risk = sum(log.daily_pest_risk) / len(log.daily_pest_risk)
         return self._clamp(1.0 - avg_risk)
 
@@ -256,12 +256,12 @@ class Task3Grader(BaseGrader):
         Partial score based on how few zones were affected.
         """
         if log.pest_contained:
-            return 1.0
+            return 0.999
         if not log.pest_events:
-            return 1.0
+            return 0.999
         # Score degrades with each pest event (spread event)
         spread_events = len(log.pest_events)
-        penalty = min(1.0, spread_events * 0.05)
+        penalty = min(0.998, spread_events * 0.05)
         return self._clamp(1.0 - penalty)
 
     def _grade_sustainability(self, log: EpisodeLog) -> float:
@@ -270,18 +270,18 @@ class Task3Grader(BaseGrader):
             0.5 — budget not exhausted
             0.5 — water not overused
         """
-        # Budget score
+        # Budget score — use 0.999/0.001 instead of 1.0/0.0
         if log.budget_end > 0:
-            budget_score = 1.0
+            budget_score = 0.999
         else:
-            budget_score = 0.0
+            budget_score = 0.001
 
         # Water score
         water_score = self._clamp(
             self._safe_divide(log.water_budget, max(log.water_used, 1))
         )
 
-        return (budget_score * 0.5) + (water_score * 0.5)
+        return self._clamp((budget_score * 0.5) + (water_score * 0.5))
 
 class GraderFactory:
     """
