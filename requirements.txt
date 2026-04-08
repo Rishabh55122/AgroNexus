@@ -5,4 +5,4 @@ openai==1.51.0
 pyyaml==6.0.2
 requests==2.32.3
 aiofiles==23.2.1
-https://github.com/openenv/openenv-core/archive/refs/heads/main.zip
+openenv>=0.2.0
