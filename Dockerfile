@@ -2,11 +2,13 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Upgrade base packaging tools first to avoid source-build failures on PyPI packages
+# Upgrade pip, setuptools, and wheel
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt || (cat /root/.cache/pip/log/debug.log 2>/dev/null || echo "Dependency install failed")
+
+# Removed the inline `|| echo` masking so any actual Pip failure stops the build and shows the correct error log
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
