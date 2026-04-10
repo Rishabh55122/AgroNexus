@@ -559,14 +559,14 @@ class AgriculturalEnvironment:
         )
 
     def grade(self) -> dict:
-        """
-        Grades the completed episode using the task grader.
-        Can only be called after done=True.
-        """
+        """Grades completed episode. Ensures score is strictly in (0, 1)."""
         if not self.done:
             return {"error": "Episode not finished yet. Keep stepping."}
         grader = GraderFactory.get(self.task_id)
-        return grader.grade(self.log)
+        result = grader.grade(self.log)
+        # Enforce strict bounds required by Phase 2 validator
+        result["final_score"] = max(0.01, min(0.99, result["final_score"]))
+        return result
 
 if __name__ == "__main__":
     import json

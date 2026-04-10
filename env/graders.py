@@ -46,14 +46,23 @@ class BaseGrader:
         raise NotImplementedError
 
     def _clamp(self, value: float) -> float:
-        """Ensures score is strictly within (0.0, 1.0) exclusive — validator requirement."""
-        return round(max(0.001, min(0.999, value)), 4)
+        """
+        Ensures score is strictly within (0.0, 1.0) exclusive.
+        Phase 2 validator rejects exactly 0.0 or exactly 1.0.
+        Clamps to [0.01, 0.99] to satisfy strict inequality.
+        """
+        clamped = max(0.01, min(0.99, float(value)))
+        return round(clamped, 4)
 
     def _safe_divide(self, numerator: float, denominator: float) -> float:
-        """Division that returns 0.001 instead of ZeroDivisionError."""
+        """
+        Division that returns 0.01 instead of ZeroDivisionError.
+        Never returns 0.0 to avoid boundary score rejection.
+        """
         if denominator == 0:
-            return 0.001
-        return numerator / denominator
+            return 0.01
+        result = numerator / denominator
+        return result
 
 class Task1Grader(BaseGrader):
     """
@@ -77,6 +86,11 @@ class Task1Grader(BaseGrader):
             efficiency_score * 0.30
         )
 
+        final_score = max(0.01, min(0.99, round(final_score, 4)))
+        yield_score = max(0.01, min(0.99, round(yield_score, 4)))
+        timing_score = max(0.01, min(0.99, round(timing_score, 4)))
+        efficiency_score = max(0.01, min(0.99, round(efficiency_score, 4)))
+
         return {
             "task_id":        "task_1_easy",
             "final_score":    self._clamp(final_score),
@@ -91,12 +105,9 @@ class Task1Grader(BaseGrader):
             }
         }
 
-    def _grade_yield(self, log: EpisodeLog) -> float:
-        """Ratio of actual revenue to maximum possible revenue."""
-        return self._safe_divide(
-            log.total_revenue,
-            log.max_possible_revenue
-        )
+    def _grade_yield(self, log) -> float:
+        result = self._safe_divide(log.total_revenue, log.max_possible_revenue)
+        return max(0.01, result)  # ← never exact 0
 
     def _grade_timing(self, log: EpisodeLog) -> float:
         """
@@ -147,6 +158,12 @@ class Task2Grader(BaseGrader):
             pest_score     * 0.10
         )
 
+        final_score = max(0.01, min(0.99, round(final_score, 4)))
+        survival_score = max(0.01, min(0.99, round(survival_score, 4)))
+        water_score = max(0.01, min(0.99, round(water_score, 4)))
+        yield_score = max(0.01, min(0.99, round(yield_score, 4)))
+        pest_score = max(0.01, min(0.99, round(pest_score, 4)))
+
         return {
             "task_id":       "task_2_medium",
             "final_score":   self._clamp(final_score),
@@ -168,14 +185,9 @@ class Task2Grader(BaseGrader):
         survived = log.zones_total - log.zones_failed
         return self._safe_divide(survived, log.zones_total)
 
-    def _grade_water(self, log: EpisodeLog) -> float:
-        """
-        Full score if water used <= water budget.
-        Linear penalty for going over budget.
-        Zero score if water used >= 2x budget.
-        """
+    def _grade_water(self, log):
         if log.water_used <= log.water_budget:
-            return 0.999
+            return 0.98  # ← not 1.0
         overuse = log.water_used - log.water_budget
         penalty = self._safe_divide(overuse, log.water_budget)
         return self._clamp(1.0 - penalty)
@@ -220,6 +232,11 @@ class Task3Grader(BaseGrader):
             pest_control_score * 0.30 +
             sustainability     * 0.20
         )
+
+        final_score = max(0.01, min(0.99, round(final_score, 4)))
+        profit_score = max(0.01, min(0.99, round(profit_score, 4)))
+        pest_control_score = max(0.01, min(0.99, round(pest_control_score, 4)))
+        sustainability = max(0.01, min(0.99, round(sustainability, 4)))
 
         return {
             "task_id":             "task_3_hard",
@@ -304,6 +321,18 @@ class GraderFactory:
                 f"Valid: {list(cls._graders.keys())}"
             )
         return cls._graders[task_id]()
+
+    @classmethod
+    def validate_score(cls, score: float) -> float:
+        """
+        Validates score is strictly between 0 and 1.
+        Adjusts boundary values to pass Phase 2 validator.
+        """
+        if score <= 0.0:
+            return 0.01
+        if score >= 1.0:
+            return 0.99
+        return round(score, 4)
 
     @classmethod
     def list_tasks(cls) -> list[str]:

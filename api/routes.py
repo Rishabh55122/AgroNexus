@@ -281,6 +281,9 @@ def grade(request: GraderRequest = None):
             )
         )
     result = env.grade()
+    # Enforce strict bounds required by Phase 2 validator
+    if "final_score" in result:
+        result["final_score"] = max(0.01, min(0.99, result["final_score"]))
     return {
         "task_id":       request.task_id,
         "grader_result": result,
@@ -315,6 +318,9 @@ def simulate(request: SimulateRequest = None):
             "done":           done,
         })
     grader_result = env.grade()
+    # Enforce strict bounds required by Phase 2 validator
+    if "final_score" in grader_result:
+        grader_result["final_score"] = max(0.01, min(0.99, grader_result["final_score"]))
     return {
         "task_id":        request.task_id,
         "policy":         request.policy,
@@ -402,6 +408,9 @@ def baseline(request: BaselineRequest = None):
             action = _pick_action(obs, "greedy", rng)
             obs, reward, done, info = env.step(action)
         grader_result = env.grade()
+        # Enforce strict bounds required by Phase 2 validator
+        if "final_score" in grader_result:
+            grader_result["final_score"] = max(0.01, min(0.99, grader_result["final_score"]))
         elapsed = round(time.time() - start_time, 2)
         results[task_id] = {
             "final_score":     grader_result["final_score"],
