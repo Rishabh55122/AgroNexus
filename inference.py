@@ -180,12 +180,10 @@ def run_episode(task_id: str, policy: str = "llm") -> dict:
                 obs, reward, done, info = env.step(action)
 
                 step_reward = reward.step_reward
-                rewards.append(step_reward)
                 last_error  = None
 
             except Exception as e:
-                step_reward = 0.0
-                rewards.append(step_reward)
+                step_reward = 0.01   # ← was 0.0, now 0.01
                 error_str  = str(e).replace("\n", " ")[:100]
                 last_error = error_str
                 done       = True
@@ -195,10 +193,14 @@ def run_episode(task_id: str, policy: str = "llm") -> dict:
                 if action_dict else "error"
             )
 
+            # Clamp reward to strictly (0.01, 0.99) — validator rejects 0.00 and 1.00
+            clamped_reward = max(0.01, min(0.99, float(step_reward)))
+            rewards.append(clamped_reward)
+
             print(
                 f"[STEP] step={step_n} "
                 f"action={action_str} "
-                f"reward={step_reward:.2f} "
+                f"reward={clamped_reward:.2f} "
                 f"done={'true' if done else 'false'} "
                 f"error={error_str}",
                 flush=True
@@ -211,17 +213,33 @@ def run_episode(task_id: str, policy: str = "llm") -> dict:
             success = last_error is None
 
     except Exception as e:
+        clamped_reward = 0.01
+        rewards.append(clamped_reward)
         print(
             f"[STEP] step={step_n + 1} "
             f"action=error "
-            f"reward=0.00 "
+            f"reward={clamped_reward:.2f} "
             f"done=true "
             f"error={str(e)[:100]}",
             flush=True
         )
         success = False
 
-    rewards_str = ",".join(f"{r:.2f}" for r in rewards) if rewards else "0.00"
+    # Clamp all rewards strictly between 0.01 and 0.99
+    clamped_rewards = [max(0.01, min(0.99, float(r))) for r in rewards]
+
+    # Build rewards string — each value to 2 decimal places
+    if clamped_rewards:
+        rewards_str = ",".join(f"{r:.2f}" for r in clamped_rewards)
+        # Final score = average of all step rewards, also clamped
+        final_score = sum(clamped_rewards) / len(clamped_rewards)
+        final_score = max(0.01, min(0.99, final_score))
+    else:
+        rewards_str = "0.01"
+        final_score = 0.01
+
+    # success is based on final_score > 0.3
+    success = final_score > 0.3
 
     print(
         f"[END] "
